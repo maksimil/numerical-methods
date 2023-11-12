@@ -17,8 +17,12 @@ pub trait MatrixFillInitializer<Scalar> {
     fn new_fill(dimension: Index, fill: Scalar) -> Self;
 }
 
-impl<Scalar: Clone, T: MatrixFuncInitializer<Scalar>> MatrixFillInitializer<Scalar> for T {
+impl<Scalar, T> MatrixFillInitializer<Scalar> for T
+where
+    Scalar: Clone,
+    T: MatrixFuncInitializer<Scalar>,
+{
     fn new_fill(dimension: Index, fill: Scalar) -> Self {
-        T::new_func(dimension, |_, _| fill.clone())
+        Self::new_func(dimension, |_, _| fill.clone())
     }
 }

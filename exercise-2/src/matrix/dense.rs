@@ -1,3 +1,5 @@
+use std::borrow::{Borrow, BorrowMut};
+
 use crate::basic::Index;
 
 use super::traits::{MatrixFuncInitializer, MatrixMutRef, MatrixRef};
@@ -15,20 +17,27 @@ impl<Scalar> DenseColMatrix<Scalar> {
     }
 }
 
-impl<Scalar> MatrixRef<Scalar> for DenseColMatrix<Scalar> {
+impl<Scalar, B> MatrixRef<Scalar> for B
+where
+    B: Borrow<DenseColMatrix<Scalar>>,
+{
     fn dimension(&self) -> Index {
-        self.dimension
+        self.borrow().dimension
     }
 
     fn at(&self, row: Index, column: Index) -> &Scalar {
-        &self.data[self.data_index(row, column)]
+        let data_index = self.borrow().data_index(row, column);
+        &self.borrow().data[data_index]
     }
 }
 
-impl<Scalar> MatrixMutRef<Scalar> for DenseColMatrix<Scalar> {
+impl<Scalar, B> MatrixMutRef<Scalar> for B
+where
+    B: BorrowMut<DenseColMatrix<Scalar>>,
+{
     fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
-        let data_index = self.data_index(row, column);
-        &mut self.data[data_index]
+        let data_index = self.borrow_mut().data_index(row, column);
+        &mut self.borrow_mut().data[data_index]
     }
 }
 
@@ -45,3 +54,5 @@ impl<Scalar> MatrixFuncInitializer<Scalar> for DenseColMatrix<Scalar> {
         DenseColMatrix { data, dimension }
     }
 }
+
+pub type DenseRowMatrix<Scalar> = super::transpose::MatrixTranspose<DenseColMatrix<Scalar>>;
