@@ -1,45 +1,56 @@
-use crate::basic::Index;
+use std::borrow::{Borrow, BorrowMut};
+
+use crate::{basic::Index, representation::Representation};
 
 use super::traits::{MatrixFuncInitializer, MatrixMutRef, MatrixRef};
 
 #[derive(Clone, Debug)]
-pub struct MatrixTranspose<Matrix> {
-    matrix: Matrix,
+pub struct MatrixTranspose<MatrixStored, MatrixImpl> {
+    matrix: Representation<MatrixStored, MatrixImpl>,
 }
 
-impl<Matrix> MatrixTranspose<Matrix> {
-    pub fn from_matrix(matrix: Matrix) -> Self {
-        MatrixTranspose { matrix }
+impl<MatrixStored, MatrixImpl> From<MatrixStored> for MatrixTranspose<MatrixStored, MatrixImpl> {
+    pub fn from(matrix: MatrixStored) -> Self {
+        MatrixTranspose {
+            matrix: Representation::from(matrix),
+        }
     }
 }
 
-impl<Scalar, Matrix> MatrixRef<Scalar> for MatrixTranspose<Matrix>
+impl<Scalar, MatrixStored, MatrixImpl> MatrixRef<Scalar>
+    for MatrixTranspose<MatrixStored, MatrixImpl>
 where
-    Matrix: MatrixRef<Scalar>,
+    MatrixImpl: MatrixRef<Scalar>,
+    MatrixStored: Borrow<MatrixImpl>,
 {
     fn dimension(&self) -> Index {
-        self.matrix.dimension()
+        self.matrix.represent().dimension()
     }
 
     fn at(&self, row: Index, column: Index) -> &Scalar {
-        self.matrix.at(column, row)
+        self.matrix.represent().at(column, row)
     }
 }
 
-impl<Scalar, Matrix> MatrixMutRef<Scalar> for MatrixTranspose<Matrix>
+impl<Scalar, MatrixStored, MatrixImpl> MatrixMutRef<Scalar>
+    for MatrixTranspose<MatrixStored, MatrixImpl>
 where
-    Matrix: MatrixMutRef<Scalar>,
+    MatrixImpl: MatrixMutRef<Scalar>,
+    MatrixStored: BorrowMut<MatrixImpl>,
 {
     fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
-        self.matrix.at_mut(column, row)
+        self.matrix.represent_mut().at_mut(column, row)
     }
 }
 
-impl<Scalar, Matrix> MatrixFuncInitializer<Scalar> for MatrixTranspose<Matrix>
+impl<Scalar, MatrixStored, MatrixImpl> MatrixFuncInitializer<Scalar>
+    for MatrixTranspose<MatrixStored, MatrixImpl>
 where
-    Matrix: MatrixFuncInitializer<Scalar>,
+    MatrixStored: MatrixFuncInitializer<Scalar>,
 {
     fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Scalar) -> Self {
-        Self::from_matrix(Matrix::new_func(dimension, |row, column| fill(column, row)))
+        Self::from(MatrixStored::new_func(dimension, |row, column| {
+            fill(column, row)
+        }))
     }
 }
