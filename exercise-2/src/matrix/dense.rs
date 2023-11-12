@@ -13,6 +13,10 @@ impl<Scalar> DenseColMatrix<Scalar> {
     fn data_index(&self, row: Index, column: Index) -> Index {
         row + column * self.dimension
     }
+
+    pub fn new(dimension: Index, data: Vec<Scalar>) -> Self {
+        Self { dimension, data }
+    }
 }
 
 impl<Scalar> MatrixRef<Scalar> for DenseColMatrix<Scalar> {
@@ -36,15 +40,14 @@ impl<Scalar> MatrixFuncInitializer<Scalar> for DenseColMatrix<Scalar> {
     fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Scalar) -> Self {
         let mut data = Vec::with_capacity(dimension * dimension);
 
-        for row in 0..dimension {
-            for column in 0..dimension {
+        for column in 0..dimension {
+            for row in 0..dimension {
                 data.push(fill(row, column));
             }
         }
 
-        DenseColMatrix { data, dimension }
+        DenseColMatrix::new(dimension, data)
     }
 }
 
-pub type DenseRowMatrix<Scalar> =
-    super::transpose::MatrixTranspose<DenseColMatrix<Scalar>, DenseColMatrix<Scalar>>;
+pub type DenseRowMatrix<Scalar> = super::transpose::MatrixTranspose<DenseColMatrix<Scalar>>;

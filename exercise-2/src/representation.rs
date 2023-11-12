@@ -34,3 +34,14 @@ impl<Stored, Impl> Representation<Stored, Impl> {
         self.stored.borrow_mut()
     }
 }
+
+pub type RefRepresentation<'a, T> = Representation<&'a T, T>;
+pub type MutRefRepresentation<'a, T> = Representation<&'a mut T, T>;
+
+pub fn repr<'a, T>(v: &'a T) -> RefRepresentation<'a, T> {
+    RefRepresentation::from(v)
+}
+
+pub fn repr_mut<'a, T>(v: &'a mut T) -> MutRefRepresentation<'a, T> {
+    MutRefRepresentation::from(v)
+}
