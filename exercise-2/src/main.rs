@@ -1,23 +1,31 @@
-use matrix::dense::DenseColMatrix;
+use matrix::dense::DenseRowMatrix;
 
-use crate::{
-    matrix::{
-        traits::{MatrixFuncInitializer, MatrixRef},
-        transpose::MatrixTranspose,
-    },
-    representation::repr,
-};
+use crate::lu_decomposition::lu_decomposition::LUDecomposition;
 
 mod basic;
+mod lu_decomposition;
 mod matrix;
 mod representation;
 
+type S = f64;
+
 fn main() {
-    let col_matrix = DenseColMatrix::new(3, vec![1.0, 0.0, 0.0, 2.0, 1.0, 0.0, 3.0, 2.0, 1.0]);
-    let transpose_lazy = MatrixTranspose::from(repr(&col_matrix));
-    let transpose_calculated = DenseColMatrix::from_matrix(&transpose_lazy);
-    println!("A[0,1]={:?}", col_matrix.at(0, 1));
-    println!("A={:?}", col_matrix);
-    println!("lazy A^T={:?}", transpose_lazy);
-    println!("A^T={:?}", transpose_calculated);
+    let dimension = 4;
+    let matrix = DenseRowMatrix::<S>::new(
+        dimension,
+        vec![
+            2.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0,
+        ],
+    );
+    println!("A={:?}", matrix);
+
+    let decomposition = LUDecomposition::calculate(matrix);
+    println!("Decomposition={:#?}", decomposition);
+
+    for index in 0..dimension {
+        let mut v = vec![0.0; dimension];
+        v[index] = 1.0;
+        decomposition.solve(&mut v);
+        println!("{}: {:?}", index, v);
+    }
 }

@@ -4,7 +4,7 @@ use crate::{basic::Index, representation::Representation};
 
 pub trait MatrixRef<Scalar> {
     fn dimension(&self) -> Index;
-    fn at(&self, row: Index, column: Index) -> &Scalar;
+    fn at(&self, row: Index, column: Index) -> Scalar;
 }
 
 pub trait MatrixMutRef<Scalar>: MatrixRef<Scalar> {
@@ -21,12 +21,12 @@ pub trait MatrixFuncInitializer<Scalar>: Sized {
         Self::new_func(dimension, |_, _| fill.clone())
     }
 
-    fn from_matrix(matrix: &impl MatrixRef<Scalar>) -> Self
+    fn from_matrix<S>(matrix: &impl MatrixRef<S>) -> Self
     where
-        Scalar: Clone,
+        S: Into<Scalar>,
     {
         Self::new_func(matrix.dimension(), |row, column| {
-            matrix.at(row, column).clone()
+            matrix.at(row, column).into()
         })
     }
 }
@@ -42,7 +42,7 @@ where
         self.represent().dimension()
     }
 
-    fn at(&self, row: Index, column: Index) -> &Scalar {
+    fn at(&self, row: Index, column: Index) -> Scalar {
         self.represent().at(row, column)
     }
 }

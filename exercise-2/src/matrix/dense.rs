@@ -19,17 +19,23 @@ impl<Scalar> DenseColMatrix<Scalar> {
     }
 }
 
-impl<Scalar> MatrixRef<Scalar> for DenseColMatrix<Scalar> {
+impl<Scalar> MatrixRef<Scalar> for DenseColMatrix<Scalar>
+where
+    Scalar: Clone,
+{
     fn dimension(&self) -> Index {
         self.dimension
     }
 
-    fn at(&self, row: Index, column: Index) -> &Scalar {
-        &self.data[self.data_index(row, column)]
+    fn at(&self, row: Index, column: Index) -> Scalar {
+        self.data[self.data_index(row, column)].clone()
     }
 }
 
-impl<Scalar> MatrixMutRef<Scalar> for DenseColMatrix<Scalar> {
+impl<Scalar> MatrixMutRef<Scalar> for DenseColMatrix<Scalar>
+where
+    Scalar: Clone,
+{
     fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
         let data_index = self.data_index(row, column);
         &mut self.data[data_index]
@@ -51,3 +57,9 @@ impl<Scalar> MatrixFuncInitializer<Scalar> for DenseColMatrix<Scalar> {
 }
 
 pub type DenseRowMatrix<Scalar> = super::transpose::MatrixTranspose<DenseColMatrix<Scalar>>;
+
+impl<Scalar> DenseRowMatrix<Scalar> {
+    pub fn new(dimension: Index, data: Vec<Scalar>) -> Self {
+        Self::from(DenseColMatrix::new(dimension, data))
+    }
+}

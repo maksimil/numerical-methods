@@ -22,7 +22,7 @@ where
         self.matrix.dimension()
     }
 
-    fn at(&self, row: Index, column: Index) -> &Scalar {
+    fn at(&self, row: Index, column: Index) -> Scalar {
         self.matrix.at(column, row)
     }
 }
