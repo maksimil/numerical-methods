@@ -19,10 +19,12 @@ impl<Scalar> DenseColMatrix<Scalar> {
     }
 }
 
-impl<Scalar> MatrixRef<Scalar> for DenseColMatrix<Scalar>
+impl<Scalar> MatrixRef for DenseColMatrix<Scalar>
 where
     Scalar: Clone,
 {
+    type Scalar = Scalar;
+
     fn dimension(&self) -> Index {
         self.dimension
     }
@@ -32,17 +34,20 @@ where
     }
 }
 
-impl<Scalar> MatrixMutRef<Scalar> for DenseColMatrix<Scalar>
+impl<Scalar> MatrixMutRef for DenseColMatrix<Scalar>
 where
     Scalar: Clone,
 {
-    fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
+    fn at_mut(&mut self, row: Index, column: Index) -> &mut Self::Scalar {
         let data_index = self.data_index(row, column);
         &mut self.data[data_index]
     }
 }
 
-impl<Scalar> MatrixFuncInitializer<Scalar> for DenseColMatrix<Scalar> {
+impl<Scalar> MatrixFuncInitializer for DenseColMatrix<Scalar>
+where
+    Scalar: Clone,
+{
     fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Scalar) -> Self {
         let mut data = Vec::with_capacity(dimension * dimension);
 

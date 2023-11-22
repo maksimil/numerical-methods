@@ -21,26 +21,28 @@ impl<Matrix, Perm> RowPermutedMatrix<Matrix, Perm> {
     }
 }
 
-impl<Scalar, Matrix, Perm> MatrixRef<Scalar> for RowPermutedMatrix<Matrix, Perm>
+impl<Matrix, Perm> MatrixRef for RowPermutedMatrix<Matrix, Perm>
 where
-    Matrix: MatrixRef<Scalar>,
+    Matrix: MatrixRef,
     Perm: Permutation,
 {
+    type Scalar = Matrix::Scalar;
+
     fn dimension(&self) -> Index {
         self.matrix.dimension()
     }
 
-    fn at(&self, row: Index, column: Index) -> Scalar {
+    fn at(&self, row: Index, column: Index) -> Self::Scalar {
         self.matrix.at(self.row_permutation.permute(row), column)
     }
 }
 
-impl<Scalar, Matrix, Perm> MatrixMutRef<Scalar> for RowPermutedMatrix<Matrix, Perm>
+impl<Matrix, Perm> MatrixMutRef for RowPermutedMatrix<Matrix, Perm>
 where
-    Matrix: MatrixMutRef<Scalar>,
+    Matrix: MatrixMutRef,
     Perm: Permutation,
 {
-    fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
+    fn at_mut(&mut self, row: Index, column: Index) -> &mut Self::Scalar {
         self.matrix
             .at_mut(self.row_permutation.permute(row), column)
     }

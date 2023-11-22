@@ -1,3 +1,4 @@
+pub mod column;
 pub mod dense;
 pub mod permutation;
 pub mod row_permuted;

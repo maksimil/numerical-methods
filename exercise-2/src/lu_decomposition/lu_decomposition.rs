@@ -1,42 +1,47 @@
 use std::mem::swap;
 
 use crate::{
-    basic::{Index, Numerical, INDEX_NOT_FOUND},
+    basic::{Index, Numerical, OtherNumericalOps, INDEX_NOT_FOUND},
     matrix::{
+        column::{ColumnInit, ColumnMut},
         row_permuted::RowPermutedMatrix,
         solve_upper::solve_upper,
         traits::{MatrixMutRef, MatrixRef},
     },
-    representation::repr_ref,
+    representation::{repr_mut, repr_ref},
 };
 
 #[derive(Debug, Clone)]
-pub struct LUDecomposition<Matrix, Scalar> {
+pub struct LUDecomposition<Matrix>
+where
+    Matrix: MatrixMutRef,
+    Matrix::Scalar: Numerical,
+{
     // L'A
     upper_permuted: Matrix,
     // P such that PL'A is upper
     permutation: Vec<Index>,
     inverse_permutation: Vec<Index>,
     // eta vectors in row major format, len=dim*(dim-1),
-    eta_data: Vec<Scalar>,
+    eta_data: Vec<Matrix::Scalar>,
 }
 
-impl<Matrix, Scalar> LUDecomposition<Matrix, Scalar> {
-    pub fn calculate(mut matrix: Matrix) -> LUDecomposition<Matrix, Scalar>
-    where
-        Scalar: Numerical,
-        Matrix: MatrixRef<Scalar> + MatrixMutRef<Scalar>,
-    {
+impl<Matrix> LUDecomposition<Matrix>
+where
+    Matrix: MatrixMutRef,
+    Matrix::Scalar: Numerical,
+{
+    pub fn calculate(mut matrix: Matrix) -> LUDecomposition<Matrix> {
         let dimension = matrix.dimension();
         let mut permutation = vec![INDEX_NOT_FOUND; dimension];
         let mut inverse_permutation = vec![INDEX_NOT_FOUND; dimension];
-        let mut eta_data = vec![Scalar::zero(); dimension * (dimension - 1)];
+        let mut eta_data = vec![Matrix::Scalar::zero(); dimension * (dimension - 1)];
 
         for column in 0..dimension - 1 {
             let (_, pivot_row) = (0..dimension)
                 .filter(|row| permutation[*row] == INDEX_NOT_FOUND)
                 .fold(
-                    (Scalar::zero(), INDEX_NOT_FOUND),
+                    (Matrix::Scalar::zero(), INDEX_NOT_FOUND),
                     |(max_value, max_index), row| {
                         let row_value = matrix.at(row, column).abs_trait();
                         if row_value >= max_value {
@@ -47,8 +52,6 @@ impl<Matrix, Scalar> LUDecomposition<Matrix, Scalar> {
                     },
                 );
 
-            println!("pivot={},{}", pivot_row, column);
-
             permutation[pivot_row] = column;
             inverse_permutation[column] = pivot_row;
 
@@ -57,9 +60,9 @@ impl<Matrix, Scalar> LUDecomposition<Matrix, Scalar> {
                     let factor = -matrix.at(row, column) / matrix.at(pivot_row, column);
                     eta_data[column * dimension + row] = factor.clone();
 
-                    *matrix.at_mut(row, column) = Scalar::zero();
+                    *matrix.at_mut(row, column) = Matrix::Scalar::zero();
 
-                    if factor != Scalar::zero() {
+                    if factor != Matrix::Scalar::zero() {
                         for affected_column in column + 1..dimension {
                             let fill_in = matrix.at(row, affected_column)
                                 + factor.clone() * matrix.at(pivot_row, affected_column);
@@ -85,38 +88,37 @@ impl<Matrix, Scalar> LUDecomposition<Matrix, Scalar> {
         }
     }
 
-    pub fn solve(&self, vector: &mut Vec<Scalar>)
+    pub fn solve<Column>(&self, mut vector: &mut Column)
     where
-        Scalar: Numerical,
-        Matrix: MatrixRef<Scalar>,
+        Column: ColumnMut<Scalar = Matrix::Scalar> + ColumnInit<Scalar = Matrix::Scalar>,
     {
         let dimension = self.upper_permuted.dimension();
         // applying lower triangular matricies
         for eta_index in 0..dimension - 1 {
             let eta_column = self.inverse_permutation[eta_index];
-            let vector_value = vector[eta_column];
+            let vector_value = vector.at(eta_column);
             for index in 0..dimension {
-                vector[index] =
-                    vector[index] + self.eta_data[eta_index * dimension + index] * vector_value;
+                *vector.at_mut(index) =
+                    vector.at(index) + self.eta_data[eta_index * dimension + index] * vector_value;
             }
         }
 
         // permutation
         {
-            let mut unpermuted = vec![Scalar::zero(); dimension];
-            swap(&mut unpermuted, vector);
+            let mut unpermuted = Column::new(dimension, Matrix::Scalar::zero());
+            swap(&mut unpermuted, &mut vector);
             for index in 0..dimension {
-                vector[index] = unpermuted[self.inverse_permutation[index]];
+                *vector.at_mut(index) = unpermuted.at(self.inverse_permutation[index]);
             }
         }
 
         // solving upper triangular system
         solve_upper(
-            &RowPermutedMatrix::new(
+            RowPermutedMatrix::new(
                 repr_ref(&self.upper_permuted),
                 repr_ref(&self.inverse_permutation),
             ),
-            vector,
+            repr_mut(vector),
         );
     }
 }

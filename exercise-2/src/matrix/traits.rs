@@ -2,28 +2,30 @@ use std::borrow::{Borrow, BorrowMut};
 
 use crate::{basic::Index, representation::Representation};
 
-pub trait MatrixRef<Scalar> {
+pub trait MatrixRef {
+    type Scalar;
+
     fn dimension(&self) -> Index;
-    fn at(&self, row: Index, column: Index) -> Scalar;
+    fn at(&self, row: Index, column: Index) -> Self::Scalar;
 }
 
-pub trait MatrixMutRef<Scalar>: MatrixRef<Scalar> {
-    fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar;
+pub trait MatrixMutRef: MatrixRef {
+    fn at_mut(&mut self, row: Index, column: Index) -> &mut Self::Scalar;
 }
 
-pub trait MatrixFuncInitializer<Scalar>: Sized {
-    fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Scalar) -> Self;
+pub trait MatrixFuncInitializer: Sized + MatrixRef {
+    fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Self::Scalar) -> Self;
 
-    fn new_fill(dimension: Index, fill: Scalar) -> Self
+    fn new_fill(dimension: Index, fill: Self::Scalar) -> Self
     where
-        Scalar: Clone,
+        Self::Scalar: Clone,
     {
         Self::new_func(dimension, |_, _| fill.clone())
     }
 
-    fn from_matrix<S>(matrix: &impl MatrixRef<S>) -> Self
+    fn from_matrix<S>(matrix: &impl MatrixRef<Scalar = S>) -> Self
     where
-        S: Into<Scalar>,
+        S: Into<Self::Scalar>,
     {
         Self::new_func(matrix.dimension(), |row, column| {
             matrix.at(row, column).into()
@@ -33,36 +35,41 @@ pub trait MatrixFuncInitializer<Scalar>: Sized {
 
 // Implementations for representation
 
-impl<Scalar, Stored, Impl> MatrixRef<Scalar> for Representation<Stored, Impl>
+impl<Stored, Impl> MatrixRef for Representation<Stored, Impl>
 where
     Stored: Borrow<Impl>,
-    Impl: MatrixRef<Scalar>,
+    Impl: MatrixRef,
+    Impl::Scalar: Clone,
 {
+    type Scalar = Impl::Scalar;
+
     fn dimension(&self) -> Index {
         self.represent().dimension()
     }
 
-    fn at(&self, row: Index, column: Index) -> Scalar {
+    fn at(&self, row: Index, column: Index) -> Impl::Scalar {
         self.represent().at(row, column)
     }
 }
 
-impl<Scalar, Stored, Impl> MatrixMutRef<Scalar> for Representation<Stored, Impl>
+impl<Stored, Impl> MatrixMutRef for Representation<Stored, Impl>
 where
     Stored: BorrowMut<Impl>,
-    Impl: MatrixMutRef<Scalar>,
+    Impl: MatrixMutRef,
+    Impl::Scalar: Clone,
 {
-    fn at_mut(&mut self, row: Index, column: Index) -> &mut Scalar {
+    fn at_mut(&mut self, row: Index, column: Index) -> &mut Impl::Scalar {
         self.represent_mut().at_mut(row, column)
     }
 }
 
-impl<Scalar, Stored, Impl> MatrixFuncInitializer<Scalar> for Representation<Stored, Impl>
+impl<Stored, Impl> MatrixFuncInitializer for Representation<Stored, Impl>
 where
-    Stored: From<Impl>,
-    Impl: MatrixFuncInitializer<Scalar>,
+    Stored: Borrow<Impl> + From<Impl>,
+    Impl: MatrixFuncInitializer,
+    Impl::Scalar: Clone,
 {
-    fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Scalar) -> Self {
+    fn new_func(dimension: Index, fill: impl Fn(Index, Index) -> Impl::Scalar) -> Self {
         Representation::from(Stored::from(Impl::new_func(dimension, fill)))
     }
 }
