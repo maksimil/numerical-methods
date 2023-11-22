@@ -2,7 +2,7 @@ use crate::basic::Numerical;
 
 use super::{column::ColumnMut, traits::MatrixRef};
 
-pub fn solve_upper<Matrix, Column>(matrix: Matrix, mut vector: Column)
+pub fn solve_upper<Matrix, Column>(matrix: &Matrix, vector: &mut Column)
 where
     Matrix: MatrixRef,
     Matrix::Scalar: Numerical,

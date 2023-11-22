@@ -1,5 +1,3 @@
-use std::mem::swap;
-
 use crate::{
     basic::{Index, Numerical, OtherNumericalOps, INDEX_NOT_FOUND},
     matrix::{
@@ -10,6 +8,7 @@ use crate::{
     },
     representation::{repr_mut, repr_ref},
 };
+use std::mem::swap;
 
 #[derive(Debug, Clone)]
 pub struct LUDecomposition<Matrix>
@@ -88,7 +87,7 @@ where
         }
     }
 
-    pub fn solve<Column>(&self, mut vector: &mut Column)
+    pub fn solve<Column>(&self, vector: &mut Column)
     where
         Column: ColumnMut<Scalar = Matrix::Scalar> + ColumnInit<Scalar = Matrix::Scalar>,
     {
@@ -106,7 +105,7 @@ where
         // permutation
         {
             let mut unpermuted = Column::new(dimension, Matrix::Scalar::zero());
-            swap(&mut unpermuted, &mut vector);
+            swap(&mut unpermuted, vector);
             for index in 0..dimension {
                 *vector.at_mut(index) = unpermuted.at(self.inverse_permutation[index]);
             }
@@ -114,11 +113,11 @@ where
 
         // solving upper triangular system
         solve_upper(
-            RowPermutedMatrix::new(
+            &RowPermutedMatrix::new(
                 repr_ref(&self.upper_permuted),
                 repr_ref(&self.inverse_permutation),
             ),
-            repr_mut(vector),
+            vector,
         );
     }
 }

@@ -1,6 +1,6 @@
 use std::{
     iter::Sum,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Div, DivAssign, Mul, Neg, Sub, SubAssign},
 };
 
 pub type Index = usize;
@@ -8,6 +8,7 @@ pub const INDEX_NOT_FOUND: Index = usize::MAX;
 
 pub trait OtherNumericalOps {
     fn abs_trait(&self) -> Self;
+    fn sqrt_trait(&self) -> Self;
     fn zero() -> Self;
 }
 
@@ -16,6 +17,9 @@ macro_rules! impl_other_numerical_ops {
         impl OtherNumericalOps for $ty {
             fn abs_trait(&self) -> Self {
                 self.abs()
+            }
+            fn sqrt_trait(&self) -> Self {
+                self.sqrt()
             }
             fn zero() -> Self {
                 0.0
@@ -37,9 +41,12 @@ where
         + Add<Self, Output = Self>
         + Sum
         + Sub<Self, Output = Self>
+        + SubAssign<Self>
         + Mul<Self, Output = Self>
         + Div<Self, Output = Self>
-        + OtherNumericalOps,
+        + DivAssign<Self>
+        + OtherNumericalOps
+        + From<i32>,
 {
 }
 
@@ -52,8 +59,11 @@ impl<T> Numerical for T where
         + Add<Self, Output = Self>
         + Sum
         + Sub<Self, Output = Self>
+        + SubAssign<Self>
         + Mul<Self, Output = Self>
         + Div<Self, Output = Self>
+        + DivAssign<Self>
         + OtherNumericalOps
+        + From<i32>
 {
 }

@@ -59,6 +59,15 @@ where
     column: Index,
 }
 
+impl<Matrix> ColumnOf<Matrix>
+where
+    Matrix: MatrixRef,
+{
+    pub fn of(matrix: Matrix, column: Index) -> Self {
+        Self { matrix, column }
+    }
+}
+
 impl<Matrix> ColumnRef for ColumnOf<Matrix>
 where
     Matrix: MatrixRef,

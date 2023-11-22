@@ -45,7 +45,7 @@ fn create_test_cases() -> Vec<TestCase> {
         TestCase {
             matrix: DenseRowMatrix::new(3, vec![-8.0, 1.0, 1.0, 1.0, -10.0, 1.0, 1.0, 1.0, -12.0]),
             vector: vec![-10.0, -12.0, -14.0],
-            answer: vec![0.0, 0.0, 0.0],
+            answer: vec![375.0 / 232.0, 349.0 / 232.0, 331.0 / 232.0],
         },
         TestCase {
             matrix: DenseRowMatrix::new(
@@ -53,12 +53,12 @@ fn create_test_cases() -> Vec<TestCase> {
                 vec![-8.0, 9.0, 10.0, 11.0, -10.0, 7.0, 10.0, 11.0, -12.0],
             ),
             vector: vec![10.0, 12.0, 14.0],
-            answer: vec![0.0, 0.0, 0.0],
+            answer: vec![444.0 / 307.0, 358.0 / 307.0, 340.0 / 307.0],
         },
         TestCase {
             matrix: DenseRowMatrix::new(3, vec![8.0, 9.0, 10.0, 11.0, 10.0, 7.0, 10.0, 11.0, 12.0]),
             vector: vec![10.0, 12.0, 14.0],
-            answer: vec![0.0, 0.0, 0.0],
+            answer: vec![16.0, -22.0, 8.0],
         },
     ]
 }
