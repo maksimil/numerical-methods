@@ -1,12 +1,12 @@
 use crate::{
     basic::{Index, Numerical, OtherNumericalOps, INDEX_NOT_FOUND},
     matrix::{
-        column::{ColumnInit, ColumnMut},
+        column::{ColumnFuncInitializer, ColumnMut},
         row_permuted::RowPermutedMatrix,
         solve_upper::solve_upper,
-        traits::{MatrixMutRef, MatrixRef},
+        traits::MatrixMutRef,
     },
-    representation::{repr_mut, repr_ref},
+    representation::repr_ref,
 };
 use std::mem::swap;
 
@@ -89,7 +89,7 @@ where
 
     pub fn solve<Column>(&self, vector: &mut Column)
     where
-        Column: ColumnMut<Scalar = Matrix::Scalar> + ColumnInit<Scalar = Matrix::Scalar>,
+        Column: ColumnMut<Scalar = Matrix::Scalar> + ColumnFuncInitializer<Scalar = Matrix::Scalar>,
     {
         let dimension = self.upper_permuted.dimension();
         // applying lower triangular matricies
@@ -104,7 +104,7 @@ where
 
         // permutation
         {
-            let mut unpermuted = Column::new(dimension, Matrix::Scalar::zero());
+            let mut unpermuted = Column::new_fill(dimension, Matrix::Scalar::zero());
             swap(&mut unpermuted, vector);
             for index in 0..dimension {
                 *vector.at_mut(index) = unpermuted.at(self.inverse_permutation[index]);

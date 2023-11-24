@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+rm -rf output
+mkdir output
+
+cargo run -- static-direct >> output/output-2-1-direct.csv
+cargo run -- dynamic-direct >> output/output-2-2-direct.csv

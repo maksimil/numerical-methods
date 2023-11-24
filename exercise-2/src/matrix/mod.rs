@@ -1,5 +1,6 @@
 pub mod column;
 pub mod dense;
+pub mod norms;
 pub mod permutation;
 pub mod row_permuted;
 pub mod solve_upper;

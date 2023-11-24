@@ -10,6 +10,7 @@ pub trait OtherNumericalOps {
     fn abs_trait(&self) -> Self;
     fn sqrt_trait(&self) -> Self;
     fn zero() -> Self;
+    fn one() -> Self;
 }
 
 macro_rules! impl_other_numerical_ops {
@@ -24,6 +25,9 @@ macro_rules! impl_other_numerical_ops {
             fn zero() -> Self {
                 0.0
             }
+            fn one() -> Self {
+                1.0
+            }
         }
     };
 }
@@ -33,8 +37,7 @@ impl_other_numerical_ops!(f64);
 
 pub trait Numerical
 where
-    Self: Default
-        + Clone
+    Self: Clone
         + Copy
         + PartialOrd<Self>
         + Neg<Output = Self>
@@ -51,8 +54,7 @@ where
 }
 
 impl<T> Numerical for T where
-    Self: Default
-        + Clone
+    Self: Clone
         + Copy
         + PartialOrd<Self>
         + Neg<Output = Self>

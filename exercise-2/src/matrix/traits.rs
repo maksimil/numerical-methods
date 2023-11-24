@@ -33,6 +33,38 @@ pub trait MatrixFuncInitializer: Sized + MatrixRef {
     }
 }
 
+pub struct MatrixFunc<Scalar, F: Fn(Index, Index) -> Scalar> {
+    dimension: Index,
+    function: F,
+}
+
+impl<Scalar, F> MatrixFunc<Scalar, F>
+where
+    F: Fn(Index, Index) -> Scalar,
+{
+    pub fn new(dimension: Index, function: F) -> Self {
+        Self {
+            dimension,
+            function,
+        }
+    }
+}
+
+impl<Scalar, F> MatrixRef for MatrixFunc<Scalar, F>
+where
+    F: Fn(Index, Index) -> Scalar,
+{
+    type Scalar = Scalar;
+
+    fn dimension(&self) -> Index {
+        self.dimension
+    }
+
+    fn at(&self, row: Index, column: Index) -> Self::Scalar {
+        (self.function)(row, column)
+    }
+}
+
 // Implementations for representation
 
 impl<Stored, Impl> MatrixRef for Representation<Stored, Impl>
