@@ -5,3 +5,7 @@
 Solution: `./exercise-1/exercise-1.pdf`
 
 Output table: `./exercise-1/output-1.csv`
+
+## Exercise 2
+
+Output tables: `./exercise-2/output`

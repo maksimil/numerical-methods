@@ -49,7 +49,8 @@ where
         + Div<Self, Output = Self>
         + DivAssign<Self>
         + OtherNumericalOps
-        + From<i32>,
+        + From<i32>
+        + std::fmt::Debug,
 {
 }
 
@@ -67,5 +68,6 @@ impl<T> Numerical for T where
         + DivAssign<Self>
         + OtherNumericalOps
         + From<i32>
+        + std::fmt::Debug
 {
 }

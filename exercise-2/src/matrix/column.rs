@@ -1,3 +1,4 @@
+use core::fmt;
 use std::borrow::{Borrow, BorrowMut};
 
 use crate::{
@@ -91,12 +92,22 @@ where
     ColumnIn: ColumnRef<Scalar = Matrix::Scalar>,
     ColumnOut: ColumnFuncInitializer + ColumnRef<Scalar = Matrix::Scalar>,
 {
-    ColumnOut::new_func(matrix.dimension(), |i| {
-        dot(
-            &ColumnOf::new(MatrixTranspose::from(repr_ref::<Matrix>(matrix)), i),
-            column,
-        )
-    })
+    ColumnOut::new_func(matrix.dimension(), |i| apply_at(matrix, column, i))
+}
+
+pub fn apply_at<Matrix, ColumnIn>(matrix: &Matrix, column: &ColumnIn, i: Index) -> Matrix::Scalar
+where
+    Matrix: MatrixRef,
+    Matrix::Scalar: Numerical,
+    ColumnIn: ColumnRef<Scalar = Matrix::Scalar>,
+{
+    // (0..column.dimension())
+    //     .map(|j| matrix.at(i, j) * column.at(j))
+    //     .sum()
+    dot(
+        &ColumnOf::new(MatrixTranspose::from(repr_ref::<Matrix>(matrix)), i),
+        column,
+    )
 }
 
 pub struct ColumnFunc<Scalar, F>

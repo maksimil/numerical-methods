@@ -24,6 +24,13 @@ pub struct TestResult {
     pub norm_one: Scalar,
 }
 
+#[derive(Debug, Clone)]
+pub struct IterativeTestResult {
+    pub answer: Vec<Scalar>,
+    pub norm_one: Scalar,
+    pub steps: Index,
+}
+
 pub fn on_case(
     case: &TestCase,
     implementation: impl Fn(&DenseRowMatrix<Scalar>, &Vec<Scalar>) -> Vec<Scalar>,
@@ -108,9 +115,9 @@ pub fn create_static_test_cases() -> Vec<TestCase> {
         },
         TestCase {
             name: String::from("4"),
-            matrix: DenseRowMatrix::new(3, vec![8.0, 9.0, 10.0, 11.0, 10.0, 7.0, 10.0, 11.0, 12.0]),
+            matrix: DenseRowMatrix::new(3, vec![8.0, 7.0, 7.0, 7.0, 10.0, 7.0, 7.0, 7.0, 12.0]),
             vector: vec![10.0, 12.0, 14.0],
-            answer: vec![16.0, -22.0, 8.0],
+            answer: vec![-1.0 / 44.0, 29.0 / 44.0, 35.0 / 44.0],
         },
     ]
 }

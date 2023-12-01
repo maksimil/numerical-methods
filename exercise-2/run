@@ -5,3 +5,5 @@ mkdir output
 
 cargo run -- static-direct >> output/output-2-1-direct.csv
 cargo run -- dynamic-direct >> output/output-2-2-direct.csv
+cargo run -- static-iterative >> output/output-2-1-iterative.csv
+cargo run -- dynamic-iterative >> output/output-2-2-iterative.csv
