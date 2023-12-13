@@ -19,7 +19,7 @@ where
     // L'A
     upper_permuted: Matrix,
     // P such that PL'A is upper
-    permutation: Vec<Index>,
+    // permutation: Vec<Index>,
     inverse_permutation: Vec<Index>,
     // eta vectors in row major format, len=dim*(dim-1),
     eta_data: Vec<Matrix::Scalar>,
@@ -80,7 +80,7 @@ where
         }
 
         LUDecomposition {
-            permutation,
+            // permutation,
             inverse_permutation,
             eta_data,
             upper_permuted: matrix,

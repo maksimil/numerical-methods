@@ -1,5 +1,4 @@
 pub type Scalar = f64;
-pub type RealFunction = fn(Scalar) -> Scalar;
 
 #[derive(Debug, Clone)]
 pub struct IntervalType<S> {

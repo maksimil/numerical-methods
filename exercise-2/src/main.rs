@@ -10,13 +10,10 @@ use crate::{
     iterative_methods::zeidel_iterative_solve,
     lu_decomposition::LUDecomposition,
     matrix::{
-        column::{ColumnFunc, ColumnFuncInitializer, ColumnRef},
+        column::{ColumnFunc, ColumnRef},
         norms::NormedColumn,
     },
-    test::{
-        create_fifth_case, create_fifth_cases, create_static_test_cases, on_case,
-        IterativeTestResult, TestResult,
-    },
+    test::{create_fifth_cases, create_static_test_cases, on_case, TestResult},
 };
 
 mod basic;

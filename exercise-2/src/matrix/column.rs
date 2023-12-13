@@ -1,8 +1,7 @@
-use core::fmt;
 use std::borrow::{Borrow, BorrowMut};
 
 use crate::{
-    basic::{Index, Numerical, OtherNumericalOps},
+    basic::{Index, Numerical},
     representation::{repr_ref, Representation},
 };
 

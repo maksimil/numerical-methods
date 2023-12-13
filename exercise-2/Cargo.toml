@@ -1,4 +1,12 @@
 [package]
-name = "exercise-2"
+name = "exercise_2"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+name = "exercise_2"
+path = "src/lib.rs"
+
+[[bin]]
+name = "exercise_2_cli"
+path = "src/main.rs"

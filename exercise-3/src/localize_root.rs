@@ -1,6 +1,6 @@
-use crate::basic::{IntInterval, Interval, RealFunction, Scalar};
+use crate::basic::{IntInterval, Interval, Scalar};
 
-pub fn check_root(f: RealFunction, interval: &Interval) -> bool {
+pub fn check_root(f: impl Fn(Scalar) -> Scalar, interval: &Interval) -> bool {
     let start_value = f(interval.start);
     let end_value = f(interval.end);
     return start_value * end_value <= Scalar::from(0);
@@ -32,16 +32,12 @@ where
     }
 }
 
-pub fn general_localize_root<IF, PF>(
-    f: RealFunction,
+pub fn general_localize_root(
+    f: impl Fn(Scalar) -> Scalar + Clone,
     k_max: u32,
-    interval_fn: IF,
-    parts_fn: PF,
-) -> Option<Interval>
-where
-    IF: Fn(u32) -> IntInterval,
-    PF: Fn(u32) -> u32,
-{
+    interval_fn: impl Fn(u32) -> IntInterval,
+    parts_fn: impl Fn(u32) -> u32,
+) -> Option<Interval> {
     let mut k = 1;
 
     // log_parameters(k_max, &interval_fn, &parts_fn);
@@ -62,7 +58,7 @@ where
                 );
                 // println!("Checking {current_interval:?}");
 
-                if check_root(f, &current_interval) {
+                if check_root(f.clone(), &current_interval) {
                     return Some(current_interval);
                 }
             }
@@ -76,7 +72,7 @@ where
 
 // Localizes roots in radius=100_000 and dx=3e-2 in about 200ms
 // for a const function
-pub fn localize_root(f: RealFunction) -> Option<Interval> {
+pub fn localize_root(f: impl Fn(Scalar) -> Scalar + Clone) -> Option<Interval> {
     general_localize_root(
         f,
         3,
@@ -88,6 +84,9 @@ pub fn localize_root(f: RealFunction) -> Option<Interval> {
     )
 }
 
-pub fn localize_root_in_interval(f: RealFunction, interval: IntInterval) -> Option<Interval> {
+pub fn localize_root_in_interval(
+    f: impl Fn(Scalar) -> Scalar + Clone,
+    interval: IntInterval,
+) -> Option<Interval> {
     general_localize_root(f, 3, |_| interval.clone(), |k| 100u32.pow(k))
 }

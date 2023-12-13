@@ -3,5 +3,12 @@
 version = 3
 
 [[package]]
-name = "exercise-3"
+name = "exercise_2"
 version = "0.1.0"
+
+[[package]]
+name = "exercise_3"
+version = "0.1.0"
+dependencies = [
+ "exercise_2",
+]
