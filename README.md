@@ -1,4 +1,4 @@
-# Numerical methods tasks from 1st semester
+# Numerical methods tasks
 
 ## Exercise 1
 
