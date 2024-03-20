@@ -1,10 +1,5 @@
+use crate::scalar::*;
 use std::num::Wrapping;
-
-pub type Scalar = f64;
-pub const SCALAR_ZERO: Scalar = 0.;
-pub const SCALAR_ONE: Scalar = 1.;
-
-pub type Index = usize;
 
 #[derive(Debug, Clone)]
 pub struct Polynomial {
