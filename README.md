@@ -17,3 +17,9 @@ Output tables: `./exercise-2/output`
 ## Exercise 3
 
 Source code: `./exercise-3`
+
+## Exercise 4
+
+Source code: `./exercise-4`
+
+Output tables: `./exercise-4/output`
