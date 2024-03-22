@@ -124,8 +124,6 @@ impl Spline {
             }
         }
 
-        println!("dim={rowlen}");
-
         // computing coefs
         let lud = LUDecomposition::compute(&matrix, rowlen);
         lud.solve(&mut coefs);

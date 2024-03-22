@@ -41,13 +41,24 @@ fn main() {
     let b = 1.;
 
     let m = 10_000;
+    let graph_m = 100;
     let ns = vec![3, 5, 10, 15, 20, 25, 40, 50, 60, 70, 80, 90, 100];
+    let graph_ni = vec![0, 1, 2, 4, 7, 12];
 
     let initial = vec![2.548, -2.169];
 
-    let mut poly_stats_file = File::create("output/stats.csv").unwrap();
+    let mut stats_file = File::create("output/stats.csv").unwrap();
+    let mut graph_file = File::create("output/graph.csv").unwrap();
 
-    poly_stats_file
+    let mut lagranges = vec![];
+    let mut lagranges_opt = vec![];
+    let mut newtons = vec![];
+    let mut newtons_opt = vec![];
+    let mut spline1s = vec![];
+    let mut spline2s = vec![];
+    let mut spline3s = vec![];
+
+    stats_file
         .write("n;m;RL;RLopt;RN;RNopt;RS1;RS2;RS3\n".as_bytes())
         .unwrap();
 
@@ -77,7 +88,7 @@ fn main() {
         let spline2_err = calc_error(example_function, |x| spline2.at(x), a, b, m);
         let spline3_err = calc_error(example_function, |x| spline3.at(x), a, b, m);
 
-        poly_stats_file
+        stats_file
             .write(
                 format!(
                     "{n};{m};{lagrange_err:.e};{lagrange_opt_err:.e};{newton_err:.e};\
@@ -86,5 +97,48 @@ fn main() {
                 .as_bytes(),
             )
             .unwrap();
+
+        lagranges.push(lagrange_poly);
+        lagranges_opt.push(lagrange_opt_poly);
+
+        newtons.push(newton_poly);
+        newtons_opt.push(newton_opt_poly);
+
+        spline1s.push(spline1);
+        spline2s.push(spline2);
+        spline3s.push(spline3);
+    }
+
+    graph_file.write("x;f".as_bytes()).unwrap();
+    for ii in 0..graph_ni.len() {
+        let i = graph_ni[ii];
+        let n = ns[i];
+        graph_file
+            .write(format!(";L_{n};Lopt_{n};N_{n};Nopt_{n};S1_{n};S2_{n};S3_{n}").as_bytes())
+            .unwrap();
+    }
+    graph_file.write("\n".as_bytes()).unwrap();
+
+    for k in 0..=graph_m {
+        let x = a + (b - a) * (k as Scalar) / (graph_m as Scalar);
+        graph_file
+            .write(format!("{x};{f}", f = example_function(x)).as_bytes())
+            .unwrap();
+
+        for ii in 0..graph_ni.len() {
+            let i = graph_ni[ii];
+            let l = lagranges[i].at(x);
+            let lopt = lagranges_opt[i].at(x);
+            let nt = newtons[i].at(x);
+            let nt_opt = newtons_opt[i].at(x);
+            let s1 = spline1s[i].at(x);
+            let s2 = spline2s[i].at(x);
+            let s3 = spline3s[i].at(x);
+            graph_file
+                .write(format!(";{l};{lopt};{nt};{nt_opt};{s1};{s2};{s3}").as_bytes())
+                .unwrap();
+        }
+
+        graph_file.write("\n".as_bytes()).unwrap();
     }
 }
