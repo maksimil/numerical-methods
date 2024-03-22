@@ -1,27 +1,31 @@
 use crate::scalar::*;
 use std::num::Wrapping;
 
+pub fn poly_at(coefs: &[Scalar], x: Scalar) -> Scalar {
+    let mut xn = SCALAR_ONE;
+    let mut r = SCALAR_ZERO;
+
+    for n in 0..coefs.len() {
+        r += coefs[n] * xn;
+        xn *= x;
+    }
+
+    r
+}
+
 #[derive(Debug, Clone)]
 pub struct Polynomial {
     pub coefs: Vec<Scalar>,
 }
 
 impl Polynomial {
+    pub fn at(&self, x: Scalar) -> Scalar {
+        poly_at(&self.coefs, x)
+    }
+
     pub fn new(n: Index) -> Polynomial {
         let coefs = vec![SCALAR_ZERO; n + 1];
         Polynomial { coefs }
-    }
-
-    pub fn at(&self, x: Scalar) -> Scalar {
-        let mut y = SCALAR_ZERO;
-        let mut xn = SCALAR_ONE;
-
-        for n in 0..self.coefs.len() {
-            y += xn * self.coefs[n];
-            xn *= x;
-        }
-
-        y
     }
 }
 

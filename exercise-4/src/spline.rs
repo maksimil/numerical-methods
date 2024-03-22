@@ -1,4 +1,6 @@
-use crate::{lu::LUDecomposition, scalar::*};
+use std::cmp::Ordering;
+
+use crate::{lu::LUDecomposition, polynomial::poly_at, scalar::*};
 
 #[derive(Debug, Clone)]
 pub struct Spline {
@@ -9,7 +11,41 @@ pub struct Spline {
 }
 
 impl Spline {
-    pub fn new(order: Index, points: Vec<Scalar>, f: impl Fn(Scalar) -> Scalar) -> Spline {
+    pub fn at(&self, x: Scalar) -> Scalar {
+        let idx = {
+            let idx = self
+                .points
+                .binary_search_by(|y| {
+                    if y < &x {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                })
+                .err()
+                .unwrap();
+            if idx == 0 {
+                1
+            } else if idx == self.points.len() {
+                self.points.len() - 1
+            } else {
+                idx
+            }
+        };
+
+        poly_at(
+            &self.coefs[(idx - 1) * (self.order + 1)..idx * (self.order + 1)],
+            x,
+        )
+    }
+
+    // points array should be sorted
+    pub fn new(
+        order: Index,
+        points: &Vec<Scalar>,
+        f: impl Fn(Scalar) -> Scalar,
+        initial: &Vec<Scalar>, // derivatives 1..=order-1, len=order-1
+    ) -> Spline {
         // computing the needed factorials
         let factorial = {
             let factorial_to = order;
@@ -59,6 +95,7 @@ impl Spline {
                     xjn *= points[0];
                     matrix[(2 * k + i - 1) * rowlen + n] = xjn * factorial[n] / factorial[n - i];
                 }
+                coefs[2 * k + i - 1] = initial[i - 1];
             }
 
             // continuous derivative (rows 2k+order-1..2k+k*(order+1))
@@ -87,8 +124,7 @@ impl Spline {
             }
         }
 
-        println!("m={matrix:?}");
-        println!("y={coefs:?}");
+        println!("dim={rowlen}");
 
         // computing coefs
         let lud = LUDecomposition::compute(&matrix, rowlen);
@@ -96,7 +132,7 @@ impl Spline {
 
         Spline {
             coefs,
-            points,
+            points: points.clone(),
             order,
         }
     }
