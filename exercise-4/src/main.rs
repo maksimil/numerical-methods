@@ -7,11 +7,11 @@ mod scalar;
 mod spline;
 
 fn example_function(x: Scalar) -> Scalar {
-    return x * x + 1.0;
+    return x.sin();
 }
 
 fn main() {
-    let s = Spline::new(1, vec![-2., -1., 0., 1., 2.], example_function);
+    let s = Spline::new(4, vec![0., 1., 2.0], example_function);
     println!("{s:?}");
     // let points = vec![-1.0, 0.0, 1.0, 10.0, 3.0];
     //
