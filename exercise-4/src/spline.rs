@@ -40,12 +40,9 @@ impl Spline {
     }
 
     // points array should be sorted
-    pub fn new(
-        order: Index,
-        points: &Vec<Scalar>,
-        f: impl Fn(Scalar) -> Scalar,
-        initial: &Vec<Scalar>, // derivatives 1..=order-1, len=order-1
-    ) -> Spline {
+    pub fn new(order: Index, points: &Vec<Scalar>, f: impl Fn(Scalar) -> Scalar) -> Spline {
+        assert!(order <= 3);
+
         // computing the needed factorials
         let factorial = {
             let factorial_to = order;
@@ -85,17 +82,32 @@ impl Spline {
             }
 
             // initial conditions (rows 2k..2k+order-1)
-            for i in 1..=(order - 1) {
-                // 0..i are zero
-                // i is i!
-                matrix[(2 * k + i - 1) * rowlen + i] = factorial[i];
-                // i+1..=order is l!/(l-i)!*x^{l-i}
-                let mut xjn = SCALAR_ONE;
-                for n in (i + 1)..=order {
-                    xjn *= points[0];
-                    matrix[(2 * k + i - 1) * rowlen + n] = xjn * factorial[n] / factorial[n - i];
+            if order == 2 {
+                // setting first derivative to zero on the first point
+                matrix[2 * k * rowlen + 1] = SCALAR_ONE;
+
+                let mut x0n = SCALAR_ONE;
+                for n in 2..=order {
+                    x0n *= points[0];
+                    matrix[2 * k * rowlen + n] = x0n * (n as Scalar);
                 }
-                coefs[2 * k + i - 1] = initial[i - 1];
+                coefs[2 * k] = SCALAR_ZERO;
+            } else if order == 3 {
+                // setting second derivatives to zero on endpoints
+                matrix[2 * k * rowlen + 2] = SCALAR_ONE;
+                matrix[(2 * k + 1) * rowlen + (order + 1) * (k - 1) + 2] = SCALAR_ONE;
+
+                let mut x0n = SCALAR_ONE;
+                let mut xkn = SCALAR_ONE;
+                for n in 3..=order {
+                    x0n *= points[0];
+                    xkn *= points[k];
+                    matrix[2 * k * rowlen + n] = x0n * factorial[n] / factorial[n - 2];
+                    matrix[(2 * k + 1) * rowlen + (order + 1) * (k - 1) + n] =
+                        xkn * factorial[n] / factorial[n - 2];
+                }
+                coefs[2 * k] = SCALAR_ZERO;
+                coefs[2 * k + 1] = SCALAR_ZERO;
             }
 
             // continuous derivative (rows 2k+order-1..2k+k*(order+1))
