@@ -7,8 +7,8 @@ pub struct GenerateMatrix {
     pub eigenvalues: Vec<Scalar>,
 }
 
-const VALUES_SEPARATION: Scalar = 0.5;
-const VALUES_MAGNITUDE_MUL: Scalar = 10.;
+const VALUES_SEPARATION: Scalar = 1e-2;
+const VALUES_MAGNITUDE_MUL: Scalar = 1.; // should be > 1
 const TRANSFROMATION_VALUES_MAGNITUDE: Scalar = 5.;
 
 fn rand_scalar(magnitude: Scalar) -> Scalar {
@@ -42,6 +42,8 @@ pub fn generate_matrix(dimension: Index) -> GenerateMatrix {
             values[k] = singular_value;
         }
 
+        values.sort_by(Scalar::total_cmp);
+
         values
     };
 
@@ -53,8 +55,6 @@ pub fn generate_matrix(dimension: Index) -> GenerateMatrix {
             for k in 0..dimension * dimension {
                 matrix[k] = rand_scalar(transformation_matrix_values_magnitude);
             }
-
-            println!("Checking {:?}", matrix);
 
             lu = LUDecomposition::compute(&matrix, dimension);
         }

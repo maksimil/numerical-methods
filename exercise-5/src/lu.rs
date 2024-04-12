@@ -2,7 +2,7 @@ use std::mem::swap;
 
 use crate::scalar::*;
 
-fn dot_product(x: &[Scalar], y: &[Scalar]) -> Scalar {
+pub fn dot_product(x: &[Scalar], y: &[Scalar]) -> Scalar {
     debug_assert!(x.len() == y.len());
 
     let mut r = SCALAR_ZERO;
