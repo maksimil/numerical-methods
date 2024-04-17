@@ -7,11 +7,11 @@ pub struct GenerateMatrix {
     pub eigenvalues: Vec<Scalar>,
 }
 
-const VALUES_SEPARATION: Scalar = 1e-2;
-const VALUES_MAGNITUDE_MUL: Scalar = 1.; // should be > 1
-const TRANSFROMATION_VALUES_MAGNITUDE: Scalar = 5.;
+pub const VALUES_SEPARATION: Scalar = 10.;
+const VALUES_MAGNITUDE_MUL: Scalar = 100.; // should be > 1
+const TRANSFROMATION_VALUES_MAGNITUDE: Scalar = 10.;
 
-fn rand_scalar(magnitude: Scalar) -> Scalar {
+pub fn rand_scalar(magnitude: Scalar) -> Scalar {
     (rand::random::<Scalar>() - 0.5) * 2. * magnitude
 }
 

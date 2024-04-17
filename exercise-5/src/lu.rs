@@ -52,7 +52,7 @@ pub struct LUDecomposition {
 const MIN_PIVOT: Scalar = 1e-7;
 
 impl LUDecomposition {
-    fn new_zero(dimension: Index) -> LUDecomposition {
+    pub fn new_zero(dimension: Index) -> LUDecomposition {
         let lower = vec![SCALAR_ZERO; dimension * dimension];
         let upper = vec![SCALAR_ZERO; dimension * dimension];
 

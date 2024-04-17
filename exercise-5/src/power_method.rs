@@ -6,8 +6,8 @@ pub struct PowerMethod {
     pub vector: Vec<Scalar>,
 }
 
-const PM_MIN_COORD: Scalar = 1e-8;
-const PM_CONVERGENCE: Scalar = 1e-6;
+pub const PM_MIN_COORD: Scalar = 1e-8;
+pub const PM_CONVERGENCE: Scalar = 1e-6;
 
 pub fn power_method(matrix: &[Scalar], dimension: Index) -> Option<PowerMethod> {
     let mut y_vector = vec![SCALAR_ZERO; dimension];
@@ -49,7 +49,7 @@ pub fn power_method(matrix: &[Scalar], dimension: Index) -> Option<PowerMethod> 
 
             if z_vector[i].abs() < PM_MIN_COORD {
                 current_lambda_valid[i] = false;
-                current_lambda[i] = SCALAR_ZERO;
+                current_lambda[i] = y_vector[i] / PM_MIN_COORD;
             } else {
                 current_lambda_valid[i] = true;
                 current_lambda[i] = y_vector[i] / z_vector[i];
