@@ -7,7 +7,7 @@ pub struct GenerateMatrix {
     pub eigenvalues: Vec<Scalar>,
 }
 
-pub const VALUES_SEPARATION: Scalar = 10.;
+pub const VALUES_SEPARATION: Scalar = 1e-2;
 const VALUES_MAGNITUDE_MUL: Scalar = 100.; // should be > 1
 const TRANSFROMATION_VALUES_MAGNITUDE: Scalar = 10.;
 

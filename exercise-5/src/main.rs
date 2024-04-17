@@ -1,30 +1,25 @@
-use rand::distributions::{Distribution, Uniform};
 use rand_matrix::generate_matrix;
 
-use crate::{
-    inverse_power_method::inverse_power_method,
-    rand_matrix::{rand_scalar, VALUES_SEPARATION},
-};
+use crate::qr_algorithm::hessenberg_form;
 
 mod inverse_power_method;
 mod lu;
 mod power_method;
+mod qr_algorithm;
 mod rand_matrix;
 mod scalar;
 
 fn main() {
-    let dimension = 1000;
+    let dimension = 10;
     let generated = generate_matrix(dimension);
 
     println!("{:#?}", generated.eigenvalues);
 
     let matrix = generated.matrix;
+    let mut hessenberg = matrix.clone();
 
-    let value_index = Uniform::from(0..dimension).sample(&mut rand::thread_rng());
-    let approximation = generated.eigenvalues[value_index] + rand_scalar(VALUES_SEPARATION / 2.);
+    hessenberg_form(&mut hessenberg, dimension);
 
-    let pm = inverse_power_method(&matrix, dimension, approximation);
-
-    println!("approximation = {approximation:?}");
-    println!("pm = {pm:#?}");
+    println!("A = {matrix:#?}");
+    println!("B = {hessenberg:#?}");
 }
