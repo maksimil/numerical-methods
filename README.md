@@ -24,7 +24,7 @@ Source code: `./exercise-4`
 
 Output tables: `./exercise-4/output`
 
-## Exercise 
+## Exercise 5
 
 Source code: `./exercise-5/`
 
