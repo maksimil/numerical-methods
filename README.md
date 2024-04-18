@@ -23,3 +23,9 @@ Source code: `./exercise-3`
 Source code: `./exercise-4`
 
 Output tables: `./exercise-4/output`
+
+## Exercise 
+
+Source code: `./exercise-5/`
+
+Usage: `echo 100\n | cargo run -r`

@@ -49,8 +49,6 @@ pub struct LUDecomposition {
     inverse_permutation_: Vec<Index>,
 }
 
-const MIN_PIVOT: Scalar = 1e-7;
-
 impl LUDecomposition {
     pub fn new_zero(dimension: Index) -> LUDecomposition {
         let lower = vec![SCALAR_ZERO; dimension * dimension];

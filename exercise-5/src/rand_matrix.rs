@@ -7,10 +7,6 @@ pub struct GenerateMatrix {
     pub eigenvalues: Vec<Scalar>,
 }
 
-pub const VALUES_SEPARATION: Scalar = 1e-2;
-const VALUES_MAGNITUDE_MUL: Scalar = 100.; // should be > 1
-const TRANSFROMATION_VALUES_MAGNITUDE: Scalar = 10.;
-
 pub fn rand_scalar(magnitude: Scalar) -> Scalar {
     (rand::random::<Scalar>() - 0.5) * 2. * magnitude
 }
@@ -18,7 +14,6 @@ pub fn rand_scalar(magnitude: Scalar) -> Scalar {
 pub fn generate_matrix(dimension: Index) -> GenerateMatrix {
     let values_between = VALUES_SEPARATION;
     let values_magnitude = VALUES_MAGNITUDE_MUL * values_between * (dimension as Scalar);
-    let transformation_matrix_values_magnitude = TRANSFROMATION_VALUES_MAGNITUDE;
 
     let eigenvalues = {
         let mut values = vec![SCALAR_ZERO; dimension];
@@ -53,7 +48,7 @@ pub fn generate_matrix(dimension: Index) -> GenerateMatrix {
 
         while lu.is_none() {
             for k in 0..dimension * dimension {
-                matrix[k] = rand_scalar(transformation_matrix_values_magnitude);
+                matrix[k] = rand_scalar(RANDOM_TRANSFROMATION_VALUES_MAGNITUDE);
             }
 
             lu = LUDecomposition::compute(&matrix, dimension);

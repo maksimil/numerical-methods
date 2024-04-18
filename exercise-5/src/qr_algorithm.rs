@@ -165,8 +165,6 @@ pub fn qr_iteration(matrix: &mut [Scalar], dimension: Index) {
     }
 }
 
-const SUBDIAGONAL_SMALL: Scalar = 1e-8;
-
 pub fn qr_algorithm(matrix: &[Scalar], dimension: Index) -> Option<Vec<Scalar>> {
     let mut work_matrix = matrix.to_owned();
     let mut work_dimension = dimension;

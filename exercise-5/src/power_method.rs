@@ -6,9 +6,6 @@ pub struct PowerMethod {
     pub vector: Vec<Scalar>,
 }
 
-pub const PM_MIN_COORD: Scalar = 1e-8;
-pub const PM_CONVERGENCE: Scalar = 1e-6;
-
 pub fn power_method(matrix: &[Scalar], dimension: Index) -> Option<PowerMethod> {
     let mut y_vector = vec![SCALAR_ZERO; dimension];
     let mut z_vector = vec![SCALAR_ZERO; dimension];

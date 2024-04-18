@@ -1,8 +1,4 @@
-use crate::{
-    lu::LUDecomposition,
-    power_method::{PowerMethod, PM_CONVERGENCE, PM_MIN_COORD},
-    scalar::*,
-};
+use crate::{lu::LUDecomposition, power_method::PowerMethod, scalar::*};
 
 pub fn inverse_power_method(
     matrix: &[Scalar],
@@ -26,8 +22,8 @@ pub fn inverse_power_method(
 
     let mut did_converge = false;
 
-    for k in 0..MAX_ITERATIONS {
-        println!("k={k}, shift={shift}");
+    for _ in 0..MAX_ITERATIONS {
+        // println!("k={k}, shift={shift}");
         // setting z=y (y is normed)
         for k in 0..dimension {
             z_vector[k] = y_vector[k];
@@ -46,7 +42,7 @@ pub fn inverse_power_method(
                     std::mem::swap(&mut lu, &mut lu_computed);
                 }
                 None => {
-                    println!("Stopped shifting");
+                    // println!("Stopped shifting");
                     stop_shifting = true;
                 }
             };
