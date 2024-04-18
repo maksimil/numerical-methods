@@ -1,6 +1,6 @@
 use rand_matrix::generate_matrix;
 
-use crate::qr_algorithm::hessenberg_form;
+use crate::qr_algorithm::qr_algorithm;
 
 mod inverse_power_method;
 mod lu;
@@ -16,10 +16,6 @@ fn main() {
     println!("{:#?}", generated.eigenvalues);
 
     let matrix = generated.matrix;
-    let mut hessenberg = matrix.clone();
-
-    hessenberg_form(&mut hessenberg, dimension);
-
-    println!("A = {matrix:#?}");
-    println!("B = {hessenberg:#?}");
+    let res = qr_algorithm(&matrix, dimension);
+    println!("res = {res:#?}");
 }
