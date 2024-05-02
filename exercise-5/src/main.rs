@@ -87,6 +87,7 @@ fn main() {
             println!("Did not converge");
         }
     }
+    println!();
 
     // qr algorithm
     println!("QR-algorithm");
