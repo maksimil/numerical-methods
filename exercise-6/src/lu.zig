@@ -64,51 +64,42 @@ pub const LUDecomposition = struct {
     upper_: MatrixStorage,
     permutation_: matrix.Permutation,
 
-    pub fn compute(
-        allocator: std.mem.Allocator,
-        base: MatrixStorage,
-    ) !?LUDecomposition {
-        var d = try Self.init(allocator, base.dimension());
-        const factorized = try d.factorize(allocator, base);
+    work_row_used_: []bool,
+    work_vector_: matrix.Vector,
 
-        if (factorized) {
-            return d;
-        } else {
-            d.deinit(allocator);
-            return null;
-        }
+    pub fn init(allocator: std.mem.Allocator, dimension: Index) !Self {
+        return Self{
+            .lower_ = try MatrixStorage.init(allocator, dimension),
+            .upper_ = try MatrixStorage.init(allocator, dimension),
+            .permutation_ = try matrix.Permutation.init(allocator, dimension),
+            .work_row_used_ = try allocator.alloc(bool, dimension),
+            .work_vector_ = try matrix.Vector.init(allocator, dimension),
+        };
     }
 
     pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
         self.lower_.deinit(allocator);
         self.upper_.deinit(allocator);
         self.permutation_.deinit(allocator);
-    }
 
-    fn init(allocator: std.mem.Allocator, dimension: Index) !Self {
-        return Self{
-            .lower_ = try MatrixStorage.init(allocator, dimension),
-            .upper_ = try MatrixStorage.init(allocator, dimension),
-            .permutation_ = try matrix.Permutation.init(allocator, dimension),
-        };
+        allocator.free(self.work_row_used_);
+        self.work_vector_.deinit(allocator);
     }
 
     // true if computes, false otherwise
-    fn factorize(
+    pub fn factorize(
         self: *Self,
-        allocator: std.mem.Allocator,
-        base: MatrixStorage,
-    ) !bool {
+        comptime Matrix: type,
+        base: Matrix,
+    ) bool {
         const dimension = self.lower_.dimension();
 
         // memory stuff
-        const row_used = try allocator.alloc(bool, dimension);
+        var row_used = self.work_row_used_;
         @memset(row_used[0..dimension], false);
-        defer allocator.free(row_used);
 
-        var work_vector = try matrix.Vector.init(allocator, dimension);
+        var work_vector = self.work_vector_;
         work_vector.set_zero();
-        defer work_vector.deinit(allocator);
 
         self.permutation_.set_identity();
         self.lower_.set_zero();
