@@ -1,71 +1,23 @@
 const config = @import("config.zig");
 const matrix = @import("matrix.zig");
+const utils = @import("utils.zig");
 const std = @import("std");
 
 const Scalar = config.Scalar;
 const Index = config.Index;
 
-const Triangularity = enum { Upper, Lower };
-
-pub fn dot_product(
-    comptime A: type,
-    comptime B: type,
-    a: A,
-    b: B,
-) Scalar {
-    std.debug.assert(a.dimension() == b.dimension());
-
-    var r: Scalar = 0;
-
-    for (0..a.dimension()) |i| {
-        r += a.at(i) * b.at(i);
-    }
-
-    return r;
-}
-
-pub fn triangular_solve(
-    comptime MatrixRefType: type,
-    comptime VectorRefType: type,
-    comptime triangularity: Triangularity,
-    mtx: MatrixRefType,
-    permutation: matrix.Permutation,
-    vector: *VectorRefType,
-) void {
-    const dimension = mtx.dimension();
-
-    for (0..dimension) |kk| {
-        var k: Index = undefined;
-
-        if (triangularity == Triangularity.Upper) {
-            k = permutation.perm(dimension - 1 - kk);
-        } else {
-            k = permutation.perm(kk);
-        }
-
-        const v = vector.at(k);
-        vector.at_mut(k).* = 0;
-        const dot = dot_product(
-            matrix.RowOf(matrix.RowMajorMatrix),
-            VectorRefType,
-            matrix.RowOf(matrix.RowMajorMatrix).init(mtx, k),
-            vector.*,
-        );
-        vector.at_mut(k).* = (v - dot) / mtx.at(k, k);
-    }
-}
-
 pub const LUDecomposition = struct {
     const Self = @This();
 
     const MatrixStorage = matrix.RowMajorMatrix;
+    const WorkVector = matrix.Vector;
 
     lower_: MatrixStorage,
     upper_: MatrixStorage,
     permutation_: matrix.Permutation,
 
     work_row_used_: []bool,
-    work_vector_: matrix.Vector,
+    work_vector_: WorkVector,
 
     pub fn init(allocator: std.mem.Allocator, dimension: Index) !Self {
         return Self{
@@ -105,10 +57,9 @@ pub const LUDecomposition = struct {
         self.lower_.set_zero();
         self.upper_.set_zero();
 
-        // setting L to identity and clearing row_used work array
+        // setting L to identity
         for (0..dimension) |i| {
             self.lower_.at_mut(i, i).* = 1;
-            row_used[i] = false;
         }
 
         // computing LU
@@ -117,10 +68,10 @@ pub const LUDecomposition = struct {
                 work_vector.at_mut(i).* = base.at(i, col);
             }
 
-            triangular_solve(
+            utils.triangular_solve(
                 MatrixStorage,
                 matrix.Vector,
-                Triangularity.Lower,
+                utils.Triangularity.Lower,
                 self.lower_,
                 self.permutation_,
                 &work_vector,
@@ -159,5 +110,39 @@ pub const LUDecomposition = struct {
         }
 
         return true;
+    }
+
+    pub fn solve(
+        self: *Self,
+        comptime VectorType: type,
+        vector: *VectorType,
+    ) void {
+        utils.triangular_solve(
+            MatrixStorage,
+            matrix.Vector,
+            utils.Triangularity.Lower,
+            self.lower_,
+            self.permutation_,
+            vector,
+        );
+
+        utils.triangular_solve(
+            MatrixStorage,
+            matrix.Vector,
+            utils.Triangularity.Upper,
+            self.upper_,
+            self.permutation_,
+            vector,
+        );
+
+        const dimension = self.lower_.dimension();
+
+        for (0..dimension) |i| {
+            self.work_vector_.at_mut(i).* = vector.at(self.permutation_.perm(i));
+        }
+
+        for (0..dimension) |i| {
+            vector.at_mut(i).* = self.work_vector_.at(i);
+        }
     }
 };

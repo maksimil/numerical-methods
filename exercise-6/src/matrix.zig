@@ -8,13 +8,13 @@ pub const Vector = struct {
     const Self = @This();
 
     data_: []Scalar,
-    dimension_: Index,
+
+    pub fn from_slice(data: []Scalar) Self {
+        return Self{ .data_ = data };
+    }
 
     pub fn init(allocator: std.mem.Allocator, dim: Index) !Self {
-        return Self{
-            .data_ = try allocator.alloc(Scalar, dim),
-            .dimension_ = dim,
-        };
+        return from_slice(try allocator.alloc(Scalar, dim));
     }
 
     pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
@@ -22,7 +22,7 @@ pub const Vector = struct {
     }
 
     pub fn dimension(self: Self) Index {
-        return self.dimension_;
+        return self.data_.len;
     }
 
     pub fn set_zero(self: *Self) void {
