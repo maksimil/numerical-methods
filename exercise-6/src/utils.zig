@@ -88,6 +88,14 @@ pub const PolynomialCollection = struct {
     }
 };
 
+pub fn InstanceCollection(comptime TypeCollection: type) type {
+    return struct {
+        pub fn call(_: @This(), k: Index, x: Scalar) Scalar {
+            return TypeCollection.call(k, x);
+        }
+    };
+}
+
 pub fn rand_scalar(rnd: std.Random, a: Scalar, b: Scalar) Scalar {
     return a + (b - a) * rnd.float(Scalar);
 }
@@ -105,4 +113,87 @@ pub fn collection_call(
     }
 
     return r;
+}
+
+pub fn OrtogonalCollection(comptime BaseCollection: type) type {
+    return struct {
+        const Self = @This();
+
+        collection_: BaseCollection,
+        order_: Index,
+        coeficients_: []Scalar,
+        diagonal_: []Scalar,
+
+        pub fn init(allocator: std.mem.Allocator, order: Index) !Self {
+            return Self{
+                .collection_ = undefined,
+                .order_ = order,
+                .coeficients_ = try allocator.alloc(
+                    Scalar,
+                    order * (order - 1) / 2,
+                ),
+                .diagonal_ = try allocator.alloc(Scalar, order),
+            };
+        }
+
+        pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
+            allocator.free(self.coeficients_);
+            allocator.free(self.diagonal_);
+        }
+
+        pub fn compute(
+            self: *Self,
+            collection: BaseCollection,
+            points: []Scalar,
+        ) void {
+            self.collection_ = collection;
+
+            self.diagonal_[0] = 0;
+
+            for (0..points.len) |j| {
+                const v = collection.call(0, points[j]);
+                self.diagonal_[0] += v * v;
+            }
+
+            for (1..self.order_) |k| {
+                const ks = k * (k - 1) / 2;
+
+                for (0..k) |i| {
+                    self.coeficients_[ks + i] = 0;
+
+                    for (0..points.len) |j| {
+                        self.coeficients_[ks + i] +=
+                            collection.call(k, points[j]) *
+                            self.call(i, points[j]);
+                    }
+
+                    self.coeficients_[ks + i] /= self.diagonal_[i];
+                }
+
+                self.diagonal_[k] = 0;
+
+                for (0..points.len) |j| {
+                    const v = self.call(k, points[j]);
+                    self.diagonal_[k] += v * v;
+                }
+            }
+
+            std.debug.print("{any}\n", .{self});
+        }
+
+        pub fn call(self: Self, k: Index, x: Scalar) Scalar {
+            var r: Scalar = self.collection_.call(k, x);
+            const ks = k * (k -% 1) / 2;
+
+            for (0..k) |i| {
+                r += -self.coeficients_[ks + i] * self.collection_.call(i, x);
+            }
+
+            return r;
+        }
+
+        pub fn diagonal(self: Self, k: Index) Scalar {
+            return self.diagonal_[k];
+        }
+    };
 }

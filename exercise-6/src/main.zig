@@ -64,30 +64,85 @@ pub fn main() !void {
         }
     }
 
+    // computing the orthogonal collection
+    const OrthogonalCollection = utils.OrtogonalCollection(
+        utils.InstanceCollection(utils.PolynomialCollection),
+    );
+    var orthogonal_collection = try OrthogonalCollection.init(
+        allocator,
+        degrees[degrees.len - 1] + 1,
+    );
+    defer orthogonal_collection.deinit(allocator);
+    orthogonal_collection.compute(
+        utils.InstanceCollection(utils.PolynomialCollection){},
+        points,
+    );
+
     // computing least squares
-    var coefs: [degrees.len][]Scalar = undefined;
+    var plain_coefs: [degrees.len][]Scalar = undefined;
+    var orthogonal_coefs: [degrees.len][]Scalar = undefined;
 
     for (0..degrees.len) |k| {
-        coefs[k] = try allocator.alloc(Scalar, degrees[k] + 1);
+        plain_coefs[k] = try allocator.alloc(Scalar, degrees[k] + 1);
+
+        const CollectionType = type;
+        const Orthogonal = false;
+        const collection = utils.PolynomialCollection;
+
+        // const CollectionType = utils.OrtogonalCollection(
+        //     utils.InstanceCollection(utils.PolynomialCollection),
+        // );
+        // const Orthogonal = true;
+        // var collection = try CollectionType.init(allocator, degrees[k] + 1);
+        // defer collection.deinit(allocator);
+        // collection.compute(
+        //     utils.InstanceCollection(utils.PolynomialCollection){},
+        //     points,
+        // );
 
         const least_squares_computed = try least_squares.least_squares(
-            type,
+            CollectionType,
+            Orthogonal,
             allocator,
-            coefs[k],
-            utils.PolynomialCollection,
+            plain_coefs[k],
+            collection,
             points,
             data,
         );
 
         std.debug.print(
-            "least_squares_computed n={}: {}\n",
+            "plain least_squares_computed n={}: {}\n",
+            .{ degrees[k], least_squares_computed },
+        );
+    }
+
+    for (0..degrees.len) |k| {
+        orthogonal_coefs[k] = try allocator.alloc(Scalar, degrees[k] + 1);
+
+        const CollectionType = OrthogonalCollection;
+        const Orthogonal = true;
+        const collection = orthogonal_collection;
+
+        const least_squares_computed = try least_squares.least_squares(
+            CollectionType,
+            Orthogonal,
+            allocator,
+            orthogonal_coefs[k],
+            collection,
+            points,
+            data,
+        );
+
+        std.debug.print(
+            "orthogonal least_squares_computed n={}: {}\n",
             .{ degrees[k], least_squares_computed },
         );
     }
 
     defer {
         for (0..degrees.len) |k| {
-            allocator.free(coefs[k]);
+            allocator.free(plain_coefs[k]);
+            allocator.free(orthogonal_coefs[k]);
         }
     }
 
@@ -103,8 +158,8 @@ pub fn main() !void {
     for (0..degrees.len) |i| {
         const buf = try std.fmt.allocPrint(
             allocator,
-            ";approx_{}",
-            .{degrees[i]},
+            ";plain_{};orth_{}",
+            .{ degrees[i], degrees[i] },
         );
         defer allocator.free(buf);
         _ = try graph_file.write(buf);
@@ -125,12 +180,12 @@ pub fn main() !void {
         _ = try graph_file.write(buf);
 
         for (0..degrees.len) |_| {
-            _ = try graph_file.write(";");
+            _ = try graph_file.write(";;");
         }
         _ = try graph_file.write("\n");
     }
 
-    // plot the task function
+    // plot the task function and approximations
     for (0..plot_points) |i| {
         const x = a_point + (b_point - a_point) *
             (@as(Scalar, @floatFromInt(i)) /
@@ -147,14 +202,25 @@ pub fn main() !void {
         _ = try graph_file.write(buf);
 
         for (0..degrees.len) |k| {
-            const v = utils.collection_call(
+            const v_plain = utils.collection_call(
                 type,
                 utils.PolynomialCollection,
-                coefs[k],
+                plain_coefs[k],
                 x,
             );
 
-            const buf1 = try std.fmt.allocPrint(allocator, ";{}", .{v});
+            const v_orth = utils.collection_call(
+                OrthogonalCollection,
+                orthogonal_collection,
+                orthogonal_coefs[k],
+                x,
+            );
+
+            const buf1 = try std.fmt.allocPrint(
+                allocator,
+                ";{};{}",
+                .{ v_plain, v_orth },
+            );
             defer allocator.free(buf1);
             _ = try graph_file.write(buf1);
         }
