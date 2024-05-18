@@ -151,7 +151,7 @@ pub fn OrtogonalCollection(comptime BaseCollection: type) type {
             self.diagonal_[0] = 0;
 
             for (0..points.len) |j| {
-                const v = collection.call(0, points[j]);
+                const v = self.collection_.call(0, points[j]);
                 self.diagonal_[0] += v * v;
             }
 
@@ -160,14 +160,25 @@ pub fn OrtogonalCollection(comptime BaseCollection: type) type {
 
                 for (0..k) |i| {
                     self.coeficients_[ks + i] = 0;
+                }
+
+                for (0..k) |i| {
+                    var c: Scalar = 0;
 
                     for (0..points.len) |j| {
-                        self.coeficients_[ks + i] +=
-                            collection.call(k, points[j]) *
+                        c += self.collection_.call(k, points[j]) *
                             self.call(i, points[j]);
                     }
 
-                    self.coeficients_[ks + i] /= self.diagonal_[i];
+                    self.coeficients_[ks + i] = -c / self.diagonal_[i];
+                }
+
+                for (0..k) |i| {
+                    for (i + 1..k) |j| {
+                        self.coeficients_[ks + i] +=
+                            self.coeficients_[ks + j] *
+                            self.coeficients_[(j * (j -% 1) / 2) + i];
+                    }
                 }
 
                 self.diagonal_[k] = 0;
@@ -182,11 +193,12 @@ pub fn OrtogonalCollection(comptime BaseCollection: type) type {
         }
 
         pub fn call(self: Self, k: Index, x: Scalar) Scalar {
+            std.debug.assert(k < self.order_);
             var r: Scalar = self.collection_.call(k, x);
             const ks = k * (k -% 1) / 2;
 
             for (0..k) |i| {
-                r += -self.coeficients_[ks + i] * self.collection_.call(i, x);
+                r += self.coeficients_[ks + i] * self.collection_.call(i, x);
             }
 
             return r;

@@ -29,9 +29,12 @@ pub fn main() !void {
     // params
     const a_point: Scalar = -1;
     const b_point: Scalar = 1;
-    const npoints: Index = 50;
+    const npoints: Index = 500;
     const data_per_point: Index = 4;
-    const degrees = [_]Index{ 0, 1, 3, 5, 10 };
+    var degrees: [100]Index = undefined;
+    for (0..100) |k| {
+        degrees[k] = k;
+    }
     const noise_magnitude: Scalar = 0.1;
     const plot_points: Index = 200;
 
@@ -225,5 +228,48 @@ pub fn main() !void {
             _ = try graph_file.write(buf1);
         }
         _ = try graph_file.write("\n");
+    }
+
+    // logging the error
+    const stats_file = try output_dir.createFile("stats.csv", .{});
+    defer stats_file.close();
+
+    _ = try stats_file.write("n;plain;orth\n");
+
+    for (0..degrees.len) |i| {
+        const degree = degrees[i];
+
+        var plain_err: Scalar = 0;
+        var orth_err: Scalar = 0;
+
+        for (0..npoints * data_per_point) |j| {
+            const x = points[j];
+            const data_value = data[j];
+
+            const plain_value = utils.collection_call(
+                type,
+                utils.PolynomialCollection,
+                plain_coefs[i],
+                x,
+            );
+
+            const orth_value = utils.collection_call(
+                OrthogonalCollection,
+                orthogonal_collection,
+                orthogonal_coefs[i],
+                x,
+            );
+
+            plain_err += (data_value - plain_value) * (data_value - plain_value);
+            orth_err += (data_value - orth_value) * (data_value - orth_value);
+        }
+
+        const buf = try std.fmt.allocPrint(
+            allocator,
+            "{};{};{}\n",
+            .{ degree, plain_err, orth_err },
+        );
+        defer allocator.free(buf);
+        _ = try stats_file.write(buf);
     }
 }

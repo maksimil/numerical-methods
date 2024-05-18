@@ -26,6 +26,12 @@ Output tables: `./exercise-4/output`
 
 ## Exercise 5
 
-Source code: `./exercise-5/`
+Source code: `./exercise-5`
 
 Usage: `echo 100\n | cargo run -r`
+
+## Exercise 6
+
+Source code: `./exercise-6`
+
+Output tables: `./exercise-6/output`
