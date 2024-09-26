@@ -28,6 +28,6 @@ fi
 
 if [ "$command" = "run" ]; then
     logstatus "Running the app"
-    ./build/gtktest
+    ./build/exercise-7
     logstatus "App exited with $?"
 fi
