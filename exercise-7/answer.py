@@ -19,7 +19,7 @@ def f(x):
 
 
 ans = scipy.integrate.quad(f, a, b)
-ansp = scipy.integrate.quad(f, a, b, weight="alg", wvar=(alpha, beta))
+ansp = scipy.integrate.quad(f, a, b, weight="alg", wvar=(-alpha, -beta))
 
 print(f"p=  1, ans={ans[0]:20.16f}, err={ans[1]:20.16}")
 print(f"p=alg, ans={ansp[0]:20.16f}, err={ansp[1]:20.16}")
