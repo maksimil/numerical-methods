@@ -35,3 +35,9 @@ Usage: `echo 100\n | cargo run -r`
 Source code: `./exercise-6`
 
 Output tables: `./exercise-6/output`
+
+## Exercise 7
+
+Source code: `./exercise-7`
+
+Output tables: `./exercise-7/output`
