@@ -36,11 +36,11 @@ pub const kTaskInitial = [2]Scalar{ kTaskB * std.math.pi, kTaskA * std.math.pi }
 pub const kOmega = @sqrt(kTaskA * kTaskB);
 pub const kLambda = @sqrt(kTaskA / kTaskB);
 
-pub const TaskF = struct {
+pub const kTaskF = struct {
     pub fn call(_: @This(), _: Scalar, y: [2]Scalar) [2]Scalar {
         return [2]Scalar{ kTaskA * y[1], -kTaskB * y[0] };
     }
-};
+}{};
 
 pub fn TaskSolution(x: Scalar) [2]Scalar {
     return [2]Scalar{

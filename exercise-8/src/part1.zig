@@ -6,9 +6,9 @@ const Scalar = config.Scalar;
 
 const kTaskEps = 1e-4;
 
-fn RunMethod(
-    comptime Method: type,
-    method: Method,
+fn RunMethodSteps(
+    f: anytype,
+    method: anytype,
     y0: [2]Scalar,
     x0: Scalar,
     x_end: Scalar,
@@ -18,11 +18,12 @@ fn RunMethod(
     var k = @as(usize, 0);
 
     while (x0 + config.ToScalar(k + 1) * step < x_end) {
-        yk = method.call(yk, x0 + config.ToScalar(k) * step, step);
+        yk = method.call(f, yk, x0 + config.ToScalar(k) * step, step);
         k += 1;
     }
 
     yk = method.call(
+        f,
         yk,
         x0 + config.ToScalar(k) * step,
         x_end - (x0 + config.ToScalar(k) * step),
@@ -31,50 +32,50 @@ fn RunMethod(
     return yk;
 }
 
-pub fn Run() !void {
-    try config.stdout.print("\x1B[1;32m>> Part 1\x1B[0m\n", .{});
+fn RunMethod(method: anytype) !void {
+    try config.stdout.print("\x1B[34mUsing {s}\x1B[0m\n", .{@TypeOf(method).name});
 
     var step = runge.MinStepSize(
-        config.TaskF,
-        config.TaskF{},
+        config.kTaskF,
         config.kTaskInitial,
         0.0,
-        runge.kTwoStageRungeOrder,
+        @TypeOf(method).order,
         kTaskEps,
     );
 
     try config.stdout.print("Initial step = {e:10.3}\n", .{step});
 
-    const run_with_step = struct {
-        pub fn call(_: @This(), h: Scalar) [2]Scalar {
-            const method_type = runge.TwoStageRungeMethod(config.TaskF);
-
-            return RunMethod(
-                method_type,
-                method_type{ .f = config.TaskF{}, .gamma = config.kTaskXi },
-                config.kTaskInitial,
-                0.0,
-                config.kTaskT,
-                h,
-            );
-        }
-    }{};
-
     var prev_result: [2]Scalar = undefined;
     var current_result: [2]Scalar = undefined;
     var loss = std.math.inf(Scalar);
 
-    current_result = run_with_step.call(step);
+    current_result =
+        RunMethodSteps(
+        config.kTaskF,
+        method,
+        config.kTaskInitial,
+        0.0,
+        config.kTaskT,
+        step,
+    );
     step /= 2.0;
 
     while (loss >= kTaskEps) {
         prev_result = current_result;
-        current_result = run_with_step.call(step);
+        current_result =
+            RunMethodSteps(
+            config.kTaskF,
+            method,
+            config.kTaskInitial,
+            0.0,
+            config.kTaskT,
+            step,
+        );
 
         loss = runge.RungeErr2(
             prev_result,
             current_result,
-            runge.kTwoStageRungeOrder,
+            @TypeOf(method).order,
             2.0,
         );
         const v = config.TaskSolution(config.kTaskT);
@@ -99,4 +100,13 @@ pub fn Run() !void {
     );
 
     try config.stdout.print("\n", .{});
+}
+
+pub fn Run() !void {
+    try config.stdout.print("\x1B[1;32m>> Part 1\x1B[0m\n", .{});
+
+    try RunMethod(runge.OneStageRunge{});
+    try RunMethod(runge.TwoStageRunge{ .gamma = config.kTaskXi });
+    try RunMethod(runge.ThreeStageRunge{});
+    try RunMethod(runge.FourStageRunge{});
 }
