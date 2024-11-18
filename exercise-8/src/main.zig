@@ -2,6 +2,7 @@ const std = @import("std");
 const config = @import("config.zig");
 const part1 = @import("part1.zig");
 const part2 = @import("part2.zig");
+const part3 = @import("part3.zig");
 
 pub fn main() !void {
     config.RuntimeInitialize();
@@ -9,4 +10,5 @@ pub fn main() !void {
 
     try part1.Run();
     try part2.Run();
+    try part3.Run();
 }

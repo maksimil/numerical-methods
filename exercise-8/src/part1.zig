@@ -1,36 +1,11 @@
 const std = @import("std");
 const config = @import("config.zig");
 const runge = @import("runge.zig");
+const stepping = @import("stepping.zig");
 
 const Scalar = config.Scalar;
 
 const kTaskEps = 1e-4;
-
-fn RunMethodSteps(
-    f: anytype,
-    method: anytype,
-    y0: [2]Scalar,
-    x0: Scalar,
-    x_end: Scalar,
-    step: Scalar,
-) [2]Scalar {
-    var yk = y0;
-    var k = @as(usize, 0);
-
-    while (x0 + config.ToScalar(k + 1) * step < x_end) {
-        yk = method.call(f, yk, x0 + config.ToScalar(k) * step, step);
-        k += 1;
-    }
-
-    yk = method.call(
-        f,
-        yk,
-        x0 + config.ToScalar(k) * step,
-        x_end - (x0 + config.ToScalar(k) * step),
-    );
-
-    return yk;
-}
 
 fn RunMethod(method: anytype) !void {
     try config.stdout.print("\x1B[34mUsing {s}\x1B[0m\n", .{@TypeOf(method).name});
@@ -49,8 +24,7 @@ fn RunMethod(method: anytype) !void {
     var current_result: [2]Scalar = undefined;
     var loss = std.math.inf(Scalar);
 
-    current_result =
-        RunMethodSteps(
+    current_result = stepping.RunSteps(
         config.kTaskF,
         method,
         config.kTaskInitial,
@@ -62,8 +36,7 @@ fn RunMethod(method: anytype) !void {
 
     while (loss >= kTaskEps) {
         prev_result = current_result;
-        current_result =
-            RunMethodSteps(
+        current_result = stepping.RunSteps(
             config.kTaskF,
             method,
             config.kTaskInitial,
