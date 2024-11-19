@@ -6,15 +6,22 @@ const Scalar = config.Scalar;
 
 const kTaskEps = 1e-5;
 
-fn RunMethod(method: anytype) !void {
-    try config.stdout.print("\x1B[34mUsing {s}\x1B[0m\n", .{@TypeOf(method).name});
+pub fn RunMethodDynamicSteps(
+    method: anytype,
+    precision: Scalar,
+    log_step: anytype,
+) !void {
+    try config.stdout.print(
+        "\x1B[34mUsing {s} with eps={e:10.3}\x1B[0m\n",
+        .{ @TypeOf(method).name, precision },
+    );
 
     var step = runge.MinStepSize(
         config.kTaskF,
         config.kTaskInitial,
         0.0,
         @TypeOf(method).order,
-        kTaskEps,
+        precision,
     );
 
     const err_ratio = std.math.pow(
@@ -34,7 +41,7 @@ fn RunMethod(method: anytype) !void {
         }
 
         var runge_err2 = @as(Scalar, 0.0);
-        var chosen_step = @as(Scalar, 0.0);
+        const prev_x = current_x;
         while (true) {
             const y_single = method.call(
                 config.kTaskF,
@@ -62,38 +69,27 @@ fn RunMethod(method: anytype) !void {
                 2.0,
             );
 
-            if (runge_err2 > kTaskEps) {
+            if (runge_err2 > precision) {
                 step /= 2.0;
                 continue_iterations = true;
-            } else if (runge_err2 > kTaskEps * err_ratio) {
+            } else if (runge_err2 > precision * err_ratio) {
                 current_y = y_half_second;
                 current_x += step;
-                chosen_step = step;
                 step /= 2.0;
                 break;
-            } else if (runge_err2 > kTaskEps * err_ratio * err_ratio) {
+            } else if (runge_err2 > precision * err_ratio * err_ratio) {
                 current_y = y_single;
                 current_x += step;
-                chosen_step = step;
                 break;
             } else {
                 current_y = y_single;
                 current_x += step;
-                chosen_step = step;
                 step *= 2.0;
                 break;
             }
         }
 
-        const answer_y = config.TaskSolution(current_x);
-        const err2 = runge.Norm2(
-            [2]Scalar{ current_y[0] - answer_y[0], current_y[1] - answer_y[1] },
-        );
-        try config.stdout.print(
-            "x={e:10.3}, y=[{e:10.3}, {e:10.3}], err2={e:10.3}, " ++
-                "runge_err2_local={e:10.3}, step={e:10.3}\n",
-            .{ current_x, current_y[0], current_y[1], err2, runge_err2, chosen_step },
-        );
+        try log_step.call(current_y, prev_x, current_x, runge_err2);
     }
 
     const answer_y = config.TaskSolution(config.kTaskT);
@@ -113,8 +109,32 @@ fn RunMethod(method: anytype) !void {
 pub fn Run() !void {
     try config.stdout.print("\x1B[1;32m>> Part 2\x1B[0m\n", .{});
 
-    try RunMethod(runge.OneStageRunge{});
-    try RunMethod(runge.TwoStageRunge{ .gamma = config.kTaskXi });
-    try RunMethod(runge.ThreeStageRunge{});
-    try RunMethod(runge.FourStageRunge{});
+    const callback = struct {
+        pub fn call(
+            _: @This(),
+            y1: [2]Scalar,
+            x0: Scalar,
+            x1: Scalar,
+            runge_err2: Scalar,
+        ) !void {
+            const correct = config.TaskSolution(x1);
+            const err2 = runge.Norm2(
+                [2]Scalar{ correct[0] - y1[0], correct[1] - y1[1] },
+            );
+            try config.stdout.print(
+                "x={e:10.3}, y=[{e:10.3}, {e:10.3}], " ++
+                    "runge_err2={e:10.3}, err2={e:10.3}, step={e:10.3}\n",
+                .{ x1, y1[0], y1[1], runge_err2, err2, x1 - x0 },
+            );
+        }
+    }{};
+
+    try RunMethodDynamicSteps(runge.OneStageRunge{}, kTaskEps, callback);
+    try RunMethodDynamicSteps(
+        runge.TwoStageRunge{ .gamma = config.kTaskXi },
+        kTaskEps,
+        callback,
+    );
+    try RunMethodDynamicSteps(runge.ThreeStageRunge{}, kTaskEps, callback);
+    try RunMethodDynamicSteps(runge.FourStageRunge{}, kTaskEps, callback);
 }
