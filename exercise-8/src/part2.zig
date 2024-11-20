@@ -80,10 +80,12 @@ pub fn RunMethodDynamicSteps(
             } else if (runge_err2 > precision * err_ratio * err_ratio) {
                 current_y = y_single;
                 current_x += step;
+                runge_err2 = precision * err_ratio;
                 break;
             } else {
                 current_y = y_single;
                 current_x += step;
+                runge_err2 = precision * err_ratio;
                 step *= 2.0;
                 break;
             }

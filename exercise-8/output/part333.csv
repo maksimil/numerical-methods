@@ -4,3 +4,5 @@ Precision,OneCalls,TwoCalls,ThreeCalls,FourCalls
 1e-3,24,24,27,36
 1e-4,57,30,36,36
 1e-5,165,48,45,48
+1e-6,510,90,63,60
+1e-7,1599,180,90,72

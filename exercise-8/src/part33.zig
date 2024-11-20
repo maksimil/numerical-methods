@@ -7,7 +7,7 @@ const Scalar = config.Scalar;
 
 const kTaskEps = 1e-5;
 
-const kTaskTryEps = [_]Scalar{ 1e-1, 1e-2, 1e-3, 1e-4, 1e-5 };
+const kTaskTryEps = [_]Scalar{ 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7 };
 
 fn Analyze12(method: anytype, callback: anytype) !void {
     try part2.RunMethodDynamicSteps(method, kTaskEps, struct {
