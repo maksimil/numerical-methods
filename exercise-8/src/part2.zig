@@ -106,35 +106,35 @@ pub fn RunMethodDynamicSteps(
     try config.stdout.print("\n", .{});
 }
 
+pub const kLoggerCallback = struct {
+    pub fn call(
+        _: @This(),
+        y1: [2]Scalar,
+        x0: Scalar,
+        x1: Scalar,
+        runge_err2: Scalar,
+    ) !void {
+        const correct = config.TaskSolution(x1);
+        const err2 = runge.Norm2(
+            [2]Scalar{ correct[0] - y1[0], correct[1] - y1[1] },
+        );
+        try config.stdout.print(
+            "x={e:10.3}, y=[{e:10.3}, {e:10.3}], " ++
+                "runge_err2={e:10.3}, err2={e:10.3}, step={e:10.3}\n",
+            .{ x1, y1[0], y1[1], runge_err2, err2, x1 - x0 },
+        );
+    }
+}{};
+
 pub fn Run() !void {
     try config.stdout.print("\x1B[1;32m>> Part 2\x1B[0m\n", .{});
 
-    const callback = struct {
-        pub fn call(
-            _: @This(),
-            y1: [2]Scalar,
-            x0: Scalar,
-            x1: Scalar,
-            runge_err2: Scalar,
-        ) !void {
-            const correct = config.TaskSolution(x1);
-            const err2 = runge.Norm2(
-                [2]Scalar{ correct[0] - y1[0], correct[1] - y1[1] },
-            );
-            try config.stdout.print(
-                "x={e:10.3}, y=[{e:10.3}, {e:10.3}], " ++
-                    "runge_err2={e:10.3}, err2={e:10.3}, step={e:10.3}\n",
-                .{ x1, y1[0], y1[1], runge_err2, err2, x1 - x0 },
-            );
-        }
-    }{};
-
-    try RunMethodDynamicSteps(runge.OneStageRunge{}, kTaskEps, callback);
+    try RunMethodDynamicSteps(runge.OneStageRunge{}, kTaskEps, kLoggerCallback);
     try RunMethodDynamicSteps(
         runge.TwoStageRunge{ .gamma = config.kTaskXi },
         kTaskEps,
-        callback,
+        kLoggerCallback,
     );
-    try RunMethodDynamicSteps(runge.ThreeStageRunge{}, kTaskEps, callback);
-    try RunMethodDynamicSteps(runge.FourStageRunge{}, kTaskEps, callback);
+    try RunMethodDynamicSteps(runge.ThreeStageRunge{}, kTaskEps, kLoggerCallback);
+    try RunMethodDynamicSteps(runge.FourStageRunge{}, kTaskEps, kLoggerCallback);
 }

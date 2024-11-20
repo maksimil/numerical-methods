@@ -31,8 +31,8 @@ fn Analyze12(method: anytype, callback: anytype) !void {
     }{ .ptr_callback = callback });
 }
 
-pub fn Run() !void {
-    try config.stdout.print("\x1B[1;32m>> Part 3.3\x1B[0m\n", .{});
+fn Run12() !void {
+    try config.stdout.print("\x1B[1;32m>> Part 3.3.1-2\x1B[0m\n", .{});
 
     var output_dir = try std.fs.cwd().makeOpenPath("output", .{});
 
@@ -43,10 +43,6 @@ pub fn Run() !void {
     const file2 = try output_dir.createFile("part332.csv", .{});
     defer file2.close();
     const writer2 = file2.writer();
-
-    // const file3 = try output_dir.createFile("part333.zig", .{});
-    // defer file3.close();
-    // const writer3 = file3.writer();
 
     try writer1.print("x,OneStep,TwoStep,ThreeStep,FourStep\n", .{});
     try writer2.print("x,OneRatio,TwoRatio,ThreeRatio,FourRatio\n", .{});
@@ -110,4 +106,65 @@ pub fn Run() !void {
             try self.ref_writer2.print("{e},,,,{e}\n", .{ x1, ratio });
         }
     }{ .ref_writer1 = writer1, .ref_writer2 = writer2 });
+}
+
+fn CountCalls(method: anytype, precision: Scalar) !usize {
+    var ncalls = @as(usize, 0);
+
+    const method_wrapper = struct {
+        pub const name = @TypeOf(method).name;
+        pub const order = @TypeOf(method).order;
+
+        ptr_method: *const @TypeOf(method),
+        ptr_ncalls: *usize,
+
+        pub fn call(
+            self: @This(),
+            f: anytype,
+            y0: [2]Scalar,
+            x0: Scalar,
+            step: Scalar,
+        ) [2]Scalar {
+            self.ptr_ncalls.* += @as(usize, @TypeOf(method).calls);
+            return self.ptr_method.call(f, y0, x0, step);
+        }
+    }{ .ptr_ncalls = &ncalls, .ptr_method = &method };
+
+    try part2.RunMethodDynamicSteps(method_wrapper, precision, part2.kLoggerCallback);
+
+    return ncalls;
+}
+
+fn Run3() !void {
+    try config.stdout.print("\x1B[1;32m>> Part 3.3.1-2\x1B[0m\n", .{});
+
+    var output_dir = try std.fs.cwd().makeOpenPath("output", .{});
+
+    const file3 = try output_dir.createFile("part333.csv", .{});
+    defer file3.close();
+    const writer3 = file3.writer();
+
+    try writer3.print("Precision,OneCalls,TwoCalls,ThreeCalls,FourCalls\n", .{});
+
+    for (0..kTaskTryEps.len) |k| {
+        const precision = kTaskTryEps[k];
+
+        const one_calls = try CountCalls(runge.OneStageRunge{}, precision);
+        const two_calls = try CountCalls(
+            runge.TwoStageRunge{ .gamma = config.kTaskXi },
+            precision,
+        );
+        const three_calls = try CountCalls(runge.ThreeStageRunge{}, precision);
+        const four_calls = try CountCalls(runge.FourStageRunge{}, precision);
+
+        try writer3.print(
+            "{e},{d},{d},{d},{d}\n",
+            .{ precision, one_calls, two_calls, three_calls, four_calls },
+        );
+    }
+}
+
+pub fn Run() !void {
+    try Run12();
+    try Run3();
 }

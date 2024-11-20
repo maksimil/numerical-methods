@@ -10,6 +10,7 @@ pub fn Norm2(x: [2]Scalar) Scalar {
 pub const OneStageRunge = struct {
     pub const name = "OneStageRunge";
     pub const order = 1;
+    pub const calls = 1;
 
     pub fn call(
         _: @This(),
@@ -31,6 +32,7 @@ pub const OneStageRunge = struct {
 pub const TwoStageRunge = struct {
     pub const name = "TwoStageRunge";
     pub const order = 2;
+    pub const calls = 2;
 
     gamma: Scalar,
 
@@ -62,6 +64,7 @@ pub const TwoStageRunge = struct {
 pub const ThreeStageRunge = struct {
     pub const name = "ThreeStageRunge";
     pub const order = 3;
+    pub const calls = 3;
 
     pub fn call(
         _: @This(),
@@ -93,6 +96,7 @@ pub const ThreeStageRunge = struct {
 pub const FourStageRunge = struct {
     pub const name = "FourStageRunge";
     pub const order = 4;
+    pub const calls = 4;
 
     pub fn call(
         _: @This(),
