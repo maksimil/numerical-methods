@@ -41,3 +41,9 @@ Output tables: `./exercise-6/output`
 Source code: `./exercise-7`
 
 Output tables: `./exercise-7/output`
+
+## Exercise 8
+
+Source code: `./exercise-8`
+
+Output tables and analysis: `./exercise-8/output`
