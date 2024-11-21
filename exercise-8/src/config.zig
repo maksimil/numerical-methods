@@ -42,11 +42,15 @@ pub const kTaskF = struct {
     }
 }{};
 
-pub fn TaskSolution(x: Scalar) [2]Scalar {
+pub fn TaskSolutionIC(y0: [2]Scalar, x0: Scalar, x: Scalar) [2]Scalar {
     return [2]Scalar{
-        std.math.pi * (kTaskB * @cos(kOmega * x) +
-            kTaskA * kLambda * @sin(kOmega * x)),
-        std.math.pi * (-kTaskB / kLambda * @sin(kOmega * x) +
-            kTaskA * @cos(kOmega * x)),
+        y0[0] * @cos(kOmega * (x - x0)) +
+            y0[1] * kLambda * @sin(kOmega * (x - x0)),
+        -y0[0] / kLambda * @sin(kOmega * (x - x0)) +
+            y0[1] * @cos(kOmega * (x - x0)),
     };
+}
+
+pub fn TaskSolution(x: Scalar) [2]Scalar {
+    return TaskSolutionIC(kTaskInitial, 0.0, x);
 }

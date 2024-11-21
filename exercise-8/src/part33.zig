@@ -10,25 +10,30 @@ const kTaskEps = 1e-5;
 const kTaskTryEps = [_]Scalar{ 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7 };
 
 fn Analyze12(method: anytype, callback: anytype) !void {
-    try part2.RunMethodDynamicSteps(method, kTaskEps, struct {
+    var callback_wrapper = struct {
         ptr_callback: @TypeOf(callback),
+        y0: [2]Scalar,
 
         pub fn call(
-            self: @This(),
+            self: *@This(),
             y1: [2]Scalar,
             x0: Scalar,
             x1: Scalar,
             runge_err2: Scalar,
         ) !void {
-            const correct = config.TaskSolution(x1);
+            const correct = config.TaskSolutionIC(self.y0, x0, x1);
             const err2 = runge.Norm2(
                 [2]Scalar{ correct[0] - y1[0], correct[1] - y1[1] },
             );
             const err_ratio = err2 / runge_err2;
 
             try self.ptr_callback.call(x0, x1, err_ratio);
+
+            self.y0 = y1;
         }
-    }{ .ptr_callback = callback });
+    }{ .ptr_callback = callback, .y0 = config.kTaskInitial };
+
+    try part2.RunMethodDynamicSteps(method, kTaskEps, &callback_wrapper);
 }
 
 fn Run12() !void {
